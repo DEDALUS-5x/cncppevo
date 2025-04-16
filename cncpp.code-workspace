@@ -29,7 +29,8 @@
 			"*.tcc": "cpp",
 			"compare": "cpp",
 			"memory_resource": "cpp",
-			"type_traits": "cpp"
+			"type_traits": "cpp",
+			"*.in": "cpp"
 		},
 		"C_Cpp.default.defines": [
 			"POINT_MAIN",

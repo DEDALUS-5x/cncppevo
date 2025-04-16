@@ -1,0 +1,48 @@
+// the .in makes the file as a template that the cmake will use it in order to attirbute special values to special variables -> each time you create a file the cmake will use this template
+#ifndef DEFINES_HPP
+#define DEFINES_HPP
+
+#include <optional>
+#include <string>
+
+// --- DEFINITIONS ---
+
+#define VERSION "@VERSION@" // it's replaced by the value in the CMAKE, in this case 0.0.1. once it is compiled it will be substituted
+#define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+#define @BUILD_FLAG@
+
+
+// --- TYPES ---
+
+using data_t = double;    // in c++ this sintax is more readable, alias for data_t, is the quivalent of typedef
+using opt_data_t = std::optional<data_t>;
+using opt_int_t = std::optional<int>;     // optional is value that may be present or not
+
+
+// ---NAMESPACES---
+
+namespace cncpp {
+
+  std::string version(){
+    return VERSION " (" BUILD_TYPE ")";
+  }
+
+  // common root class
+  class Object{
+
+    public:
+      virtual std::string desc() const = 0; // the inhereting class MUST override this function (virtual)
+
+    protected:
+      #ifdef RELEASE_BUILD
+        const bool _debug = false;
+      #else
+        const bool _debug = true;
+      #endif
+
+    
+  }
+}
+
+
+#endif

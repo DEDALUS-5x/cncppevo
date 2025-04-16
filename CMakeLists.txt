@@ -116,10 +116,10 @@ link_directories(
 #   \____\___/|_| |_|_| |_|\__, |\__,_|_|  \___|\__,_| |_| |_|_|\___||___/
 #                          |___/
 
-# configure_file(
-#   ${SRC_DIR}/defines.hpp.in
-#   ${SRC_DIR}/defines.hpp
-# )
+configure_file(
+  ${SRC_DIR}/defines.hpp.in
+  ${SRC_DIR}/defines.hpp
+)
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/examples)
 
