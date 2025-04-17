@@ -63,8 +63,9 @@ class Point : Object{
     /**
      * 
      * @example Description like: [100.0, 200.0, 123.2]
+     * @param colored: true if we want the colored output
      */
-    string desc() const override;
+    string desc(bool colored = true) const override;
 
     /**
      * 

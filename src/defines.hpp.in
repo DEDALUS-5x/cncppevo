@@ -10,6 +10,7 @@
 #define VERSION "@VERSION@" // it's replaced by the value in the CMAKE, in this case 0.0.1. once it is compiled it will be substituted
 #define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 //#define @BUILD_FLAG@
+#define NUMBERS_WIDTH "7"
 
 
 // --- TYPES ---
@@ -31,7 +32,7 @@ namespace cncpp {
   class Object{
 
     public:
-      virtual std::string desc() const = 0; // the inhereting class MUST override this function (virtual)
+      virtual std::string desc(bool colored) const = 0; // the inhereting class MUST override this function (virtual)
 
     protected:
       #ifdef RELEASE_BUILD

@@ -11,9 +11,12 @@
 #include <exception>
 #include <sstream>
 #include <cmath>
+#include <fmt/color.h>
+#include <fmt/format.h> //format library
 
 using namespace std;
 using namespace cncpp;
+using namespace fmt;
 
 
 Point::Point(opt_data_t x, opt_data_t y, opt_data_t z) : _x(x), _y(y), _z(z) {}
@@ -94,11 +97,32 @@ data_t Point::length() const{
 
 }
 
+using col_t = optional<color>;
+static string coord_str(opt_data_t coord, col_t color = nullopt){
+  // a static function is only visible within its file
 
-string Point::desc() const{
+  string str;
+  
+  if(coord && color){
+    str = format("{:" NUMBERS_WIDTH ".3f}", styled(coord.value(), fg(color.value())));
+
+  } else if(coord){
+    str = format("{:" NUMBERS_WIDTH ".3f}", coord.value());
+
+  } 
+  else{
+    str = format("{:>" NUMBERS_WIDTH "}", "-");
+  }
+
+  return str;
+}
+
+
+string Point::desc(bool colored) const{
 
   stringstream ss;
-  ss << "[" << _x.value() << ", " << _y.value() << ", " << _z.value() << "]";
+  // we want to have a function that represent a value or a string if the coordinate is not defined
+  ss << "[" << coord_str(_x, /*colored ? */col_t(color::red)) << ", " << coord_str(_y, /*colored ? */col_t(color::green)) << ", " << coord_str(_z, /*colored ?*/ col_t(color::blue)) << "]";
 
   return ss.str();
 
@@ -116,7 +140,38 @@ string Point::desc() const{
 
 #ifdef POINT_MAIN   // normally this constant is not defined so this part is not compiled. We have to add it in the cmakelists
 
+#include <iostream> // we include it here becouse we don't need in the rest of the code
+using namespace std;
+
 int main(){
+  Point p1(0, 0, 0);
+  Point p2(100);            // x defined, y and z are not
+  Point p3(nullopt, 100);   // y defined, x and z are not
+  
+  cout << "Before any change: " << endl;
+  cout << "p1: " << p1.desc() << endl;
+  cout << "p2: " << p2.desc() << endl;
+  cout << "p3: " << p3.desc() << endl;
+
+
+  /*
+  --- MODAL TEST ---
+  we are inheriting from the previous block
+  */
+
+  p2.modal(p1);
+  p3.modal(p2);
+  p3.z(100);        // we change the individual component
+
+  cout << "After modal: " << endl;
+  cout << "p1: " << p1.desc() << endl;
+  cout << "p2: " << p2.desc() << endl;
+  cout << "p3: " << p3.desc() << endl;
+
+  cout << "Length of p3: " << p3.length() << endl;
+  cout << "Delta of p1 and p3: " << endl;
+  cout << p3.delta(p1).desc() << endl;
+
   return 0;
 }
 
