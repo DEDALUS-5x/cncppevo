@@ -23,14 +23,26 @@ namespace cncpp{
   class Block : Object{
     public:
 
-    // we define the profile class here because it is used only within this class
-    // we define profile as a struct because by default it has public parameters
+      /**
+       * 
+       * @brief Profile struct it's defined here because it is used only within this class. It's also defined as struct because by default it has public parameters
+       * @param a acceleration
+       * @param d deceleration
+       * @param fs starting feedrate
+       * @param fe ending param
+       * @param dt_1 delta time of acceleration phase
+       * @param dt_m delta time of maintenance phase
+       * @param dt_2 delta time 
+       * @param dt total time duration of the block
+       * @param current_acc current acceleration
+       * 
+       */
       struct Profile{
-        data_t a, d;    // acceleration and deceleration
-        data_t f, l;    // feedrate and length
-        data_t fs, fe;  // starting feedrate and ending feedrate
-        data_t dt_q1, dt_m, dt_2; // delta t of acceleration, delta t of maintenance and delta t of deceleration
-        data_t dt;      // total duration of the block
+        data_t a, d;
+        data_t f, l;
+        data_t fs, fe;
+        data_t dt_1, dt_m, dt_2;
+        data_t dt;
         data_t current_acc;
 
         // output -> lambda function with time and speed as parameters
@@ -87,7 +99,7 @@ namespace cncpp{
       /**
        * 
        * @brief x(t) = x0 + lambda(t) * delta_x. Defined depending on lambda function
-       * @param lambda 
+       * @param lambda lambda function
        */
       Point interpolate(data_t lambda);
 
