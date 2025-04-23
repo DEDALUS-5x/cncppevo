@@ -85,7 +85,7 @@ namespace cncpp{
 
       /**
        * 
-       * @brief parsing method form wich we get all infos
+       * @brief parsing method form wich we get all infos. From the line of the gcode, the function parses it in words, where each word is a letter + number
        * @param m pointer to the machine wich is stored internally in the block instance.
        * 
        */
@@ -138,6 +138,8 @@ namespace cncpp{
       Point center() const { return _center;}
       Point target() const { return _target;}
       Point delta() const { return _delta;}
+      size_t m() const{return _m;}
+
       Profile &profile() const { return _profile;}    // the output is the reference to the original profile object in order to save more computation resources. The _profile needs to be a constant of the block, because it is modified only during the parsing phase, it's must be coupled
 
     private:
@@ -165,9 +167,16 @@ namespace cncpp{
       data_t _theta_0 = 0, _dtheta = 0;     // dtheta is the total delta of the angle
       data_t _acc = 0;
 
-      bool _parsed = f32addf32x             // flag for checking if the block has been parsed or not
+      size_t _m = 0;                    // machine command (M command of the gcode)
+      bool _parsed = false;             // flag for checking if the block has been parsed or not
+
+      void parse_token(string token);
+      Point start_point();
+      void compute();                   // calculating the velocity profile
+      void calc_arc();                  // calculating the radius, center and starting / ending angles of the arc
 
   };
+
 
 
 
