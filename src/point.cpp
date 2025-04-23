@@ -22,6 +22,9 @@ using namespace cncpp;
 using namespace fmt;
 
 
+using col_t = optional<color>;
+static string coord_str(opt_data_t const &coord, col_t const &color = nullopt);
+
 Point::Point(opt_data_t x, opt_data_t y, opt_data_t z) : _x(x), _y(y), _z(z) {}
 
 
@@ -100,8 +103,7 @@ data_t Point::length() const{
 
 }
 
-using col_t = optional<color>;
-static string coord_str(opt_data_t coord, col_t color = nullopt){
+static string coord_str(opt_data_t const &coord, col_t const &color){
   // a static function is only visible within its file
 
   string str;
@@ -120,16 +122,18 @@ static string coord_str(opt_data_t coord, col_t color = nullopt){
   return str;
 }
 
-
-string Point::desc(bool colored) const{
+string Point::desc(bool col) const{
 
   stringstream ss;
   // we want to have a function that represent a value or a string if the coordinate is not defined
-  ss << "[" << coord_str(_x, /*colored ? */col_t(color::red)) << ", " << coord_str(_y, /*colored ? */col_t(color::green)) << ", " << coord_str(_z, /*colored ?*/ col_t(color::blue)) << "]";
+  ss << "[" << coord_str(_x, col ? col_t(color::red) : nullopt) << ", "
+     << coord_str(_y, col ? col_t(color::green) : nullopt) << ", "
+     << coord_str(_z, col ? col_t(color::blue) : nullopt) << "]";
 
   return ss.str();
 
 }
+
 
 vector<data_t> Point::vec() const{
 
@@ -162,7 +166,7 @@ int main(){
   cout << "Before any change: " << endl;
   cout << "p1: " << p1.desc() << endl;
   cout << "p2: " << p2.desc() << endl;
-  cout << "p3: " << p3.desc() << endl;
+  cout << "p3: " << p3.desc(false) << endl;
 
 
   /*
