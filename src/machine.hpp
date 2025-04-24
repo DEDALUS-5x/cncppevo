@@ -13,12 +13,13 @@
 #define MACHINE_HPP
 
 #include "defines.hpp"
+#include "point.hpp"
 
 using namespace std;
 
 namespace cncpp{
 
-  class Machine : Object{
+  class Machine /*: Object*/{
 
     public:
 
@@ -37,12 +38,12 @@ namespace cncpp{
       /*
       --- ACCESSORS ---
       */
-     data_t tq() const { return _tq;}
+      data_t tq() const { return _tq;}
 
     private:  
 
-      data_t _A = 0.0;
-      Point _zero = Point();
+      data_t _A = 0.01;
+      Point _zero = Point(0, 0, 0);
       data_t _tq;                 // sampling time -> tick
 
 

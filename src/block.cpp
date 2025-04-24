@@ -16,6 +16,10 @@
 #include <sstream>
 #include <math.h>
 
+#ifdef DEBUG_BUILD
+#include <iostream> // only for debugging
+#endif
+
 using namespace std;
 using namespace cncpp;
 using namespace fmt;
@@ -102,6 +106,8 @@ Block::~Block(){
 }
 
 Block &Block::operator=(Block &b){
+
+  if(!b._parsed) throw CNCError("Previous block has not been parsed", this);
   // here we assign all the parameters that must be automatically inherited
   _tool = b._tool;      // we can access the private field because we are working on the same class
   _feedrate = b._feedrate;
@@ -118,7 +124,7 @@ Block &Block::operator=(Block &b){
 string Block::desc(bool colored) const{
   
   if(!_parsed){
-    return format("[{:>3}] {:} (not parsed yet)", _n, line);
+    return format("[{:>3}] {:} (not parsed yet)", _n, _line);
   }
 
   stringstream ss;
@@ -143,7 +149,7 @@ string Block::desc(bool colored) const{
 /*
 --- METHODS ---
 */
-void Block::parse(const Machine *m){
+Block & Block::parse(const Machine *m){
   _machine = m;
 
   stringstream ss(_line);
@@ -168,7 +174,19 @@ void Block::parse(const Machine *m){
 
   // modal fields
   _target.modal(start_point());
+
+
+
+
+  cout << "check before delta -> " << __LINE__ << endl;
+
   _delta = _target.delta(start_point());
+
+  cout << "check after delta" << __LINE__ << endl;
+
+
+
+
   _acc = _machine -> A();               // A is the max acceleration provided by the machine
   _length = _delta.length();
 
@@ -198,6 +216,8 @@ void Block::parse(const Machine *m){
   }
 
   _parsed = true;
+
+  return *this;
 }
 
 
@@ -255,7 +275,7 @@ void Block::walk(function<void(Block &b, data_t t, data_t l, data_t s)> f){
     l = lambda(t, s);
     f(*this, t, l, s);      // l is lambda
     t += _machine -> tq();  // increasing because we are evaluating step by step
-    
+
 
   }
 
@@ -402,6 +422,46 @@ void Block::compute(){
   _profile.l = l;
 }
 
-void calc_arc(){
+void Block::calc_arc(){
 
 }
+
+
+
+/*
+  _____         _                     _       
+ |_   _|__  ___| |_   _ __ ___   __ _(_)_ __  
+   | |/ _ \/ __| __| | '_ ` _ \ / _` | | '_ \ 
+   | |  __/\__ \ |_  | | | | | | (_| | | | | |
+   |_|\___||___/\__| |_| |_| |_|\__,_|_|_| |_|
+                                                                          
+*/
+
+#ifdef BLOCK_MAIN
+
+#include <iostream>
+#include "machine.hpp"
+
+using namespace cncpp;
+
+int main(){
+
+  Machine m = Machine();
+
+  Block b1 = Block("N10 G00 x100 y200 z10").parse(&m);               // in order to b2 to inherit (for example feedrate ecc from b1) b1 needs to be parsed before. vefore parsing b1 has no parameters
+
+  Block b2 = Block("N20 G00 x10 y20", b1).parse(&m);        // z is inherited from b1
+
+  cout << "b1: " << b1.desc() << endl;
+  cout << "b2: " << b2.desc() << endl;
+
+  
+  b2.walk([&](Block &b, data_t t, data_t l, data_t s){
+    Point pos = b.interpolate(l);
+    cout << format("{:} {:} {:} {:} {:} {:} ", t, l, s, pos.x(), pos.y(), pos.z()) << endl;
+  });
+
+  return 0;
+}
+
+#endif

@@ -89,9 +89,10 @@ namespace cncpp{
        * 
        * @brief parsing method form wich we get all infos. From the line of the gcode, the function parses it in words, where each word is a letter + number
        * @param m pointer to the machine wich is stored internally in the block instance.
+       * @return the same block that it's parsing
        * 
        */
-      void parse(const Machine *m);
+      Block &parse(const Machine *m);
 
       /**
        * 

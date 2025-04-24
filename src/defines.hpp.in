@@ -24,7 +24,7 @@ using opt_int_t = std::optional<int>;     // optional is value that may be prese
 
 namespace cncpp {
 
-  std::string version(){
+  static std::string version(){
     return VERSION " (" BUILD_TYPE ")";
   }
 
