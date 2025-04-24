@@ -32,6 +32,41 @@ const map<Block::BlockType, string> Block::types = {
 
 data_t Block::Profile::lambda(data_t t, data_t &s){
 
+    data_t r;               // result
+  current_acc = 0.0;
+
+  if(t < 0){
+    r = 0.0;
+    s = 0;
+
+  } else if(t < dt_1){                // acceleration phase
+
+    r = a * pow(t, 2);
+    s = a * t;
+    current_acc = a;
+
+  } else if(t < dt_1 + dt_m){         // maintenance phase
+
+    r = f * (dt_1 / 2.0 + (t - dt_1));
+    s = f;
+    current_acc = 0.0;
+
+  } else if(t < dt_1 + dt_m + dt_2){ // deceleration phase
+
+    data_t t_2 = dt_1 + dt_m;
+    r = f * dt_1 / 2 + f * (dt_m + t + t_2) + d / 2.0 * (pow(t, 2) + pow(t_2, 2)) - d * t * t_2;
+    s = f + d * (t + t_2);
+    current_acc = d;      // it is negative
+
+  } else{
+
+    r = 1.0;
+    s = 0.0;
+    current_acc = 0.0;
+  }
+
+  r /= l;
+  s *= 60;
 
   return 0;
 }
@@ -153,7 +188,7 @@ void Block::parse(const Machine *m){
       _arc_feedrate = min(
         _feedrate,      // nominal one
         pow(3.0 / 4.0 * pow(_machine -> A(), 2) * pow(_r, 2), 0.25) * 60
-      );1
+      );
 
       compute();
       break;
@@ -166,14 +201,65 @@ void Block::parse(const Machine *m){
 }
 
 
-data_t Block::lambda(data_t time, data_t &speed){
-  
-  if(!_parsed)
-    throw CNCError("Block not parsed", this);
+data_t Block::lambda(data_t t, data_t &s){
 
-  return _profile.lambda(time, speed);
+  if(!_parsed) throw CNCError("Block not parsed", this);
+
+  return _profile.lambda(t, s);
+
+
 }
 
+Point Block::interpolate(data_t lambda){
+  if(!_parsed) throw CNCError("Block not parsed", this);
+
+  Point result = Point();
+  Point p0 = start_point();
+
+  // 2 cases:
+
+  if(_type == BlockType::LINE){   // 1 -> the block describes a segment
+
+    result.x(p0.x() + _delta.x() * lambda);
+    result.y(p0.y() + _delta.y() * lambda);
+
+  } else if (_type == BlockType::CWA || _type == BlockType::CCWA){
+
+    data_t angle = _theta_0 + _dtheta * lambda;
+    result.x(_center.x() + _r * cos(angle));
+    result.y(_center.y() + _r * sin(angle));
+
+  }
+
+  // z is good for both cases
+  result.z(p0.z() + _delta.z() * lambda);
+  return result;
+
+}
+
+
+
+Point Block::interpolate(data_t time, data_t &lambda, data_t &speed){
+  
+  lambda = this -> lambda(time, speed);
+  return interpolate(lambda);
+}
+
+void Block::walk(function<void(Block &b, data_t t, data_t l, data_t s)> f){
+
+  if(!_parsed) throw CNCError("Block not parsed", this);
+
+  data_t t = 0.0, l, s;
+  while(t < _profile.dt + _machine -> tq() / 2.0) {     // we add half time sample in order to be more robust. Otherwise the risk would be to miss the last time step
+
+    l = lambda(t, s);
+    f(*this, t, l, s);      // l is lambda
+    t += _machine -> tq();  // increasing because we are evaluating step by step
+    
+
+  }
+
+}
 
 /*
 --- PRIVATE METHODS ---
@@ -284,17 +370,36 @@ void Block::compute(){
   dt_2 = dt_1;
   dt_m = l / f_m - (dt_1 + dt_2) / 2.0;
 
-  // we want to reshape the trapezoidal in order to keep the area consntant adn equal to the lenght
+  // we want to reshape the trapezoidal in order to keep the area consntant and equal to the lenght during the time quantizing
 
   if(dt_m > 0){                   // long block
 
+    dt = _machine -> quantize(dt_1 + dt_m + dt_2, dq);
+    dt_m = dt_m + dq;
+    f_m = (2 * l) / (dt_1 + dt_2 + 2 * dt_m);   // reshaping of the trapezoid height
 
   } else{                         // short block -> triangle
 
+    dt_1 = dt_2 = sqrt(l / A);
+    dt = _machine -> quantize(dt_1 + dt_2, dq);
+    dt_m = 0;
+    dt_2 = dt_2 + dq;
+    f_m = 2 * l / (dt_1 + dt_2);
 
   }
 
+  a = f_m / dt_1;       // reduced value of the acceleration
+  d = -(f_m / dt_2);    // reduced value of the decelration
 
+  // set of the profile variables
+  _profile.dt_1 = dt_1;
+  _profile.dt_2 = dt_2;
+  _profile.dt_m = dt_m;       // TRY TO USE REFERENCE TRICK, so these assignements will not be needed
+  _profile.a = a;
+  _profile.d = d;
+  _profile.f = f_m;
+  _profile.dt = dt;
+  _profile.l = l;
 }
 
 void calc_arc(){

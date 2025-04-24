@@ -105,7 +105,7 @@ namespace cncpp{
 
       /**
        * 
-       * @brief x(t) = x0 + lambda(t) * delta_x. Defined depending on lambda function
+       * @brief x(t) = x0 + lambda(t) * delta_x. Defined depending on lambda function. There are 2 cases: 1) the block describes a segment -> x(t) = x0 + d_x * lambda(t) and the same for y and z. 2) the block describes an arc. Z increases linearly for both cases
        * @param lambda lambda function
        */
       Point interpolate(data_t lambda);
@@ -121,10 +121,10 @@ namespace cncpp{
 
       /**
        * 
-       * @brief Declaration of lambda function
+       * @brief Function for walking along the block -> it converts a block in a sequence of evaluations for each time step
        * 
        */
-      void walk(std::is_function<void(Block &b, data_t t, data_t l, data_t s)> f);
+      void walk(function<void(Block &b, data_t t, data_t l, data_t s)> f);
 
 
       /*
