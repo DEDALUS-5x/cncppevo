@@ -9,12 +9,13 @@
 
 */
 
-#include "block.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <rang.hpp>
 #include <sstream>
 #include <math.h>
+
+#include "block.hpp"
 
 #ifdef DEBUG_BUILD
 #include <iostream> // only for debugging
@@ -36,7 +37,7 @@ const map<Block::BlockType, string> Block::types = {
 
 data_t Block::Profile::lambda(data_t t, data_t &s){
 
-    data_t r;               // result
+  data_t r;               // result
   current_acc = 0.0;
 
   if(t < 0){
@@ -45,7 +46,7 @@ data_t Block::Profile::lambda(data_t t, data_t &s){
 
   } else if(t < dt_1){                // acceleration phase
 
-    r = a * pow(t, 2);
+    r = a * pow(t, 2) / 2.0;
     s = a * t;
     current_acc = a;
 
@@ -58,8 +59,8 @@ data_t Block::Profile::lambda(data_t t, data_t &s){
   } else if(t < dt_1 + dt_m + dt_2){ // deceleration phase
 
     data_t t_2 = dt_1 + dt_m;
-    r = f * dt_1 / 2 + f * (dt_m + t + t_2) + d / 2.0 * (pow(t, 2) + pow(t_2, 2)) - d * t * t_2;
-    s = f + d * (t + t_2);
+    r = f * dt_1 / 2.0 + f * (dt_m + t - t_2) + d / 2.0 * (pow(t, 2) + pow(t_2, 2)) - d * t * t_2;
+    s = f + d * (t - t_2);
     current_acc = d;      // it is negative
 
   } else{
@@ -72,7 +73,7 @@ data_t Block::Profile::lambda(data_t t, data_t &s){
   r /= l;
   s *= 60;
 
-  return 0;
+  return r;
 }
 
 
@@ -102,7 +103,7 @@ Block::Block(string line, Block &p) : Block(line) {
 Block::~Block(){
 
   if(_debug)
-    cerr << style::italic << format("Block {:>3} destroyed. ", _n) << style::reset << endl;
+    cerr << style::italic << format("Block {:>3} destroyed [{:p}].", _n, (void *)(this)) << style::reset << endl;
 }
 
 Block &Block::operator=(Block &b){
@@ -130,26 +131,30 @@ string Block::desc(bool colored) const{
   stringstream ss;
   
   auto color = color::red;
-  ss << format("[{:>3}] ", _n);
+  // ss << format("[{:>3}] ", _n);
   
   if(_type == BlockType::NO_MOTION)
     color = color::gray;
   else if (_type == BlockType::RAPID)
     color = color::magenta;
   
-  ss << format("G{:0>2} ", styled(static_cast<int>(_type), fmt::fg(color)));
-  ss << format("({:-9}) ", Block::types.at(_type)) << _target.desc();
+  ss << format("[{:>3}] ", _n);
+  if (colored)
+    ss << format("G{:0>2} ", styled(static_cast<int>(_type), fmt::fg(color)));
+  else
+    ss << format("G{:0>2} ", static_cast<int>(_type));
+  ss << format("({:-^9}) ", Block::types.at(_type)) << _target.desc();
   ss << format(" F{:>5.0f} S{:>4.0f} ", _feedrate, _spindle);
   ss << format("T{:0>2} M{:0>2} ", _tool, _m);
-  ss << format("L{:>6.2f}mm DT{:>6.2f}s ", _length, _profile.dt);
-
+  ss << format("L{:>6.2f}mm DT{:>6.2f}s", _length, _profile.dt);
   return ss.str();
+
 }
 
 /*
 --- METHODS ---
 */
-Block & Block::parse(const Machine *m){
+Block &Block::parse(const Machine *m){
   _machine = m;
 
   stringstream ss(_line);
@@ -175,17 +180,11 @@ Block & Block::parse(const Machine *m){
   // modal fields
   _target.modal(start_point());
 
-
-
-
-  cout << "check before delta -> " << __LINE__ << endl;
+  //cout << "check before delta -> " << __LINE__ << endl;
 
   _delta = _target.delta(start_point());
 
-  cout << "check after delta" << __LINE__ << endl;
-
-
-
+  //cout << "check after delta" << __LINE__ << endl;
 
   _acc = _machine -> A();               // A is the max acceleration provided by the machine
   _length = _delta.length();
@@ -221,12 +220,10 @@ Block & Block::parse(const Machine *m){
 }
 
 
-data_t Block::lambda(data_t t, data_t &s){
+data_t Block::lambda(data_t time, data_t &speed){
 
   if(!_parsed) throw CNCError("Block not parsed", this);
-
-  return _profile.lambda(t, s);
-
+  return _profile.lambda(time, speed);
 
 }
 
@@ -270,12 +267,12 @@ void Block::walk(function<void(Block &b, data_t t, data_t l, data_t s)> f){
   if(!_parsed) throw CNCError("Block not parsed", this);
 
   data_t t = 0.0, l, s;
-  while(t < _profile.dt + _machine -> tq() / 2.0) {     // we add half time sample in order to be more robust. Otherwise the risk would be to miss the last time step
+
+  while(t < _profile.dt /*+ _machine -> tq() / 2.0*/) {     // we add half time sample in order to be more robust. Otherwise the risk would be to miss the last time step
 
     l = lambda(t, s);
     f(*this, t, l, s);      // l is lambda
     t += _machine -> tq();  // increasing because we are evaluating step by step
-
 
   }
 
@@ -422,10 +419,58 @@ void Block::compute(){
   _profile.l = l;
 }
 
-void Block::calc_arc(){
+void Block::calc_arc() {
+  data_t x0, y0, z0, xc, yc, xf, yf, zf;
+  Point p0 = start_point();
+  x0 = p0.x();
+  y0 = p0.y();
+  z0 = p0.z();
+  xf = _target.x();
+  yf = _target.y();
+  zf = _target.z();
+
+  if (_r) { // if the radius is given
+    data_t dx = _delta.x();
+    data_t dy = _delta.y();
+    data_t dxy2 = pow(dx, 2) + pow(dy, 2);
+    data_t sq = sqrt(-pow(dy, 2) * dxy2 * (dxy2 - 4 * _r * _r));
+    // signs table
+    // sign(r) | CW(-1) | CCW(+1)
+    // --------------------------
+    //      -1 |     +  |    -
+    //      +1 |     -  |    +
+    int s = (_r > 0) - (_r < 0);
+    s *= (_type == BlockType::CCWA ? 1 : -1);
+    xc = x0 + (dx - s * sq / dxy2) / 2.0;
+    yc = y0 + dy / 2.0 + s * (dx * sq) / (2 * dy * dxy2);
+  } else { // if I,J are given
+    data_t r2;
+    _r = hypot(_i, _j);
+    xc = x0 + _i;
+    yc = y0 + _j;
+    r2 = hypot(xf - xc, yf - yc);
+    if (fabs(_r - r2) > _machine->error()) {
+      throw CNCError(
+          fmt::format("Arc endpoints mismatch error ({:})", _r - r2).c_str(),
+          this);
+    }
+  }
+  _center.x(xc);
+  _center.y(yc);
+  _theta_0 = atan2(y0 - yc, x0 - xc);
+  _dtheta = atan2(yf - yc, xf - xc) - _theta_0;
+  // we need the net angle so we take the 2PI complement if negative
+  if (_dtheta < 0)
+    _dtheta = 2 * M_PI + _dtheta;
+  // if CW, take the negative complement
+  if (_type == BlockType::CWA)
+    _dtheta = -(2 * M_PI - _dtheta);
+  //
+  _length = hypot(zf - z0, _dtheta * _r);
+  // from now on, it's safer to drop the sign of radius angle
+  _r = fabs(_r);
 
 }
-
 
 
 /*
@@ -446,20 +491,20 @@ using namespace cncpp;
 
 int main(){
 
+  cerr << "Version: " << cncpp::version() << endl;
   Machine m = Machine();
-
-  Block b1 = Block("N10 G00 x100 y200 z10").parse(&m);               // in order to b2 to inherit (for example feedrate ecc from b1) b1 needs to be parsed before. vefore parsing b1 has no parameters
-
-  Block b2 = Block("N20 G00 x10 y20", b1).parse(&m);        // z is inherited from b1
-
-  cout << "b1: " << b1.desc() << endl;
-  cout << "b2: " << b2.desc() << endl;
-
+  auto b1 = Block("N10 G00 x100 y200 z10 F5000 S5000 T1").parse(&m);
+  auto b2 = Block("N20 G01 X10 y20", b1).parse(&m);
   
-  b2.walk([&](Block &b, data_t t, data_t l, data_t s){
+  cerr << "b1: " << b1.desc() << endl;
+  cerr << "b2: " << b2.desc() << endl;
+  
+  // Walk along b2
+  b2.walk([&](Block &b, data_t t, data_t l, data_t s) {
     Point pos = b.interpolate(l);
-    cout << format("{:} {:} {:} {:} {:} {:} ", t, l, s, pos.x(), pos.y(), pos.z()) << endl;
+    cout << format("{:} {:} {:} {:} {:} {:}", t, l, s, pos.x(), pos.y(), pos.z()) << endl;
   });
+
 
   return 0;
 }

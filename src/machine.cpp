@@ -16,7 +16,7 @@ namespace cncpp{
   data_t Machine::quantize(data_t t, data_t &dq) const{
 
       data_t q;
-      q = static_cast<size_t>((t / _tq) + 1);
+      q = static_cast<size_t>((t / _tq) + 1) * _tq;
       dq = q - t;
 
       return q;

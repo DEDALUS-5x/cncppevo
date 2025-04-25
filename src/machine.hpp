@@ -39,20 +39,16 @@ namespace cncpp{
       --- ACCESSORS ---
       */
       data_t tq() const { return _tq;}
+      data_t error() const { return _error;}
 
     private:  
 
-      data_t _A = 0.01;
+      data_t _A = 5.0;
       Point _zero = Point(0, 0, 0);
-      data_t _tq;                 // sampling time -> tick
-
-
+      data_t _tq = 0.005;                 // sampling time -> tick
+      data_t _error = 0.0;
 
   };
-
-
-
 }
-
 
 #endif // MACHINE_HPP

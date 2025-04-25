@@ -151,7 +151,7 @@ namespace cncpp{
       // some of these values will be computed depending of the machine characteristics
 
       const Machine *_machine = nullptr;                    // pointer to the machine instance
-      BlockType _type = BlockType::RAPID;   // default value
+      BlockType _type = BlockType::NO_MOTION;   // default value
       Profile _profile;                     // speed profile of the block
 
       string _line;                         // original g-code line

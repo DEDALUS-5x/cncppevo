@@ -32,7 +32,7 @@ namespace cncpp {
   class Object{
 
     public:
-      virtual std::string desc(bool colored) const = 0; // the inhereting class MUST override this function (virtual)
+      virtual std::string desc(bool colored = true) const = 0; // the inhereting class MUST override this function (virtual)
 
     protected:
       #ifdef RELEASE_BUILD
@@ -55,7 +55,12 @@ namespace cncpp {
       }
 
       std::string who() {
-        return _obj -> desc(false);
+        if(_obj){
+          
+          return _obj -> desc();
+        } else{
+          return "";
+        }
       }
 
     private:
