@@ -67,6 +67,15 @@ namespace cncpp{
       static const map<BlockType, string> types;
 
 
+      /*
+        _     _  __                      _      
+       | |   (_)/ _| ___  ___ _   _  ___| | ___ 
+       | |   | | |_ / _ \/ __| | | |/ __| |/ _ \
+       | |___| |  _|  __/ (__| |_| | (__| |  __/
+       |_____|_|_|  \___|\___|\__, |\___|_|\___|
+                              |___/             
+      */
+
       /**
        * 
        * @brief Constructor. Remember that the gcode put the informations only about the destination block
@@ -80,8 +89,14 @@ namespace cncpp{
 
       Block &operator=(Block &b); 
 
+
       /*
-      --- METHODS ----
+        ____        _     _ _                       _   _               _     
+       |  _ \ _   _| |__ | (_) ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+       | |_) | | | | '_ \| | |/ __| | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+       |  __/| |_| | |_) | | | (__  | | | | | |  __/ |_| | | | (_) | (_| \__ \
+       |_|    \__,_|_.__/|_|_|\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                              
       */
       string desc(bool colored = true) const override;
 
@@ -129,8 +144,14 @@ namespace cncpp{
 
 
       /*
-      --- ACCESSORS ---
+           _                                        
+          / \   ___ ___ ___  ___ ___  ___  _ __ ___ 
+         / _ \ / __/ __/ _ \/ __/ __|/ _ \| '__/ __|
+        / ___ \ (_| (_|  __/\__ \__ \ (_) | |  \__ \
+       /_/   \_\___\___\___||___/___/\___/|_|  |___/
+                                                    
       */
+
       string line() const { return _line;}
       size_t n() const { return _n;}
       size_t tool() const { return _tool;}
@@ -173,10 +194,44 @@ namespace cncpp{
       size_t _m = 0;                    // machine command (M command of the gcode)
       bool _parsed = false;             // flag for checking if the block has been parsed or not
 
+
+      /*
+        ____       _            _                        _   _               _     
+       |  _ \ _ __(_)_   ____ _| |_ ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+       | |_) | '__| \ \ / / _` | __/ _ \ | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+       |  __/| |  | |\ V / (_| | ||  __/ | | | | | |  __/ |_| | | | (_) | (_| \__ \
+       |_|   |_|  |_| \_/ \__,_|\__\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                                   
+      */
+
+      /**
+       * 
+       * @brief from a line of gcode we extract the informations
+       * @param token i-th line of the gcode
+       * 
+       */
       void parse_token(string token);
+
+      /**
+       * 
+       * @brief the previous block if it is present -> the starting point of the machine, so the current positino before the destination point
+       * 
+       */
       Point start_point();
-      void compute();                   // calculating the velocity profile
-      void calc_arc();                  // calculating the radius, center and starting / ending angles of the arc
+
+      /**
+       * 
+       * @brief evaluate the velocity profile, both for the trapezoidal profile and the triangular profile
+       * 
+       */
+      void compute();
+
+      /**
+       * 
+       * @brief Calculating the radius, center and starting / ending angles of the arc
+       * 
+       */
+      void calc_arc();
 
   };
 

@@ -36,8 +36,14 @@ namespace cncpp{
       data_t quantize(data_t t, data_t &dq) const;
 
       /*
-      --- ACCESSORS ---
+           _                                        
+          / \   ___ ___ ___  ___ ___  ___  _ __ ___ 
+         / _ \ / __/ __/ _ \/ __/ __|/ _ \| '__/ __|
+        / ___ \ (_| (_|  __/\__ \__ \ (_) | |  \__ \
+       /_/   \_\___\___\___||___/___/\___/|_|  |___/
+                                                    
       */
+     
       data_t tq() const { return _tq;}
       data_t error() const { return _error;}
 

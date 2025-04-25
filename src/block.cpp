@@ -152,8 +152,15 @@ string Block::desc(bool colored) const{
 }
 
 /*
---- METHODS ---
+  ____        _     _ _                       _   _               _     
+ |  _ \ _   _| |__ | (_) ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+ | |_) | | | | '_ \| | |/ __| | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+ |  __/| |_| | |_) | | | (__  | | | | | |  __/ |_| | | | (_) | (_| \__ \
+ |_|    \__,_|_.__/|_|_|\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                        
 */
+
+
 Block &Block::parse(const Machine *m){
   _machine = m;
 
@@ -279,15 +286,14 @@ void Block::walk(function<void(Block &b, data_t t, data_t l, data_t s)> f){
 }
 
 /*
---- PRIVATE METHODS ---
+  ____       _            _                        _   _               _     
+ |  _ \ _ __(_)_   ____ _| |_ ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+ | |_) | '__| \ \ / / _` | __/ _ \ | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+ |  __/| |  | |\ V / (_| | ||  __/ | | | | | |  __/ |_| | | | (_) | (_| \__ \
+ |_|   |_|  |_| \_/ \__,_|\__\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                             
 */
 
-/**
- * 
- * @brief from a line of gcode we extract the informations
- * @param token i-th line of the gcode
- * 
- */
 void Block::parse_token(string token){
 
   // we want to support both capital and lower cases, let's put all capital
@@ -360,21 +366,13 @@ void Block::parse_token(string token){
   }
 }
 
-/**
- * 
- * @brief the previous block if it is present -> the starting point of the machine, so the current positino before the destination point
- * 
- */
+
 Point Block::start_point(){
 
   return prev ? prev -> target() : _machine -> zero();
 }
 
-/**
- * 
- * @brief evaluate the velocity profile, both for the trapezoidal profile and the triangular profile
- * 
- */
+
 void Block::compute(){
 
   data_t dt, dt_1, dt_m, dt_2, dq;   // dq is the minimum time step -> the tick
