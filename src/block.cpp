@@ -532,8 +532,8 @@ int main(){
   auto b1 = Block("N10 G00 x100 y200 z10 F5000 S5000 T1").parse(&m);
   auto b2 = Block("N20 G01 X10 y20", b1).parse(&m);
   
-  cerr << "b1: " << b1 << endl;
-  cerr << "b2: " << b2 << endl;
+  cerr << "b1: " << b1.desc() << endl;
+  cerr << "b2: " << b2.desc() << endl;
   
   // Walk along b2
   b2.walk([&](Block &b, data_t t, data_t l, data_t s) {

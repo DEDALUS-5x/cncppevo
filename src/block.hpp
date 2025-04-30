@@ -235,9 +235,9 @@ namespace cncpp{
   };
 
 
-  std::ostream &operator<<(std::ostream &os, const Block &b){
+  /*std::ostream &operator<<(std::ostream &os, const Block &b){
     return os << b.desc(); 
-  }
+  }*/
 
 }
 
