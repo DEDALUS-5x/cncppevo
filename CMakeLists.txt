@@ -154,6 +154,9 @@ add_executable(program_test ${SRC_DIR}/program.cpp)
 target_compile_definitions(program_test PRIVATE PROGRAM_MAIN)
 target_link_libraries(program_test PRIVATE cncpp_lib)
 
+add_executable(simulate ${MAIN_DIR}/simulate.cpp)
+target_link_libraries(simulate PRIVATE cncpp_lib)
+
 #   ___           _        _ _
 #  |_ _|_ __  ___| |_ __ _| | |
 #   | || '_ \/ __| __/ _` | | |

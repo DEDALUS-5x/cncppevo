@@ -1,7 +1,7 @@
 // [[Rcpp::plugins("cpp17")]]
 #include <Rcpp.h>
-#include <block.hpp>
-#include <machine.hpp>
+#include <../src/block.hpp>
+#include <../src/machine.hpp>
 #include <iostream>
 
 
