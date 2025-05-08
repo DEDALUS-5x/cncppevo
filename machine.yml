@@ -10,6 +10,13 @@ machine:
     - 1000
     - 500
   offset: [0, 0, 0] # distance between spindle center and working point (kind of tool lenght)
+  mqtt:
+    host: localhost
+    port: 1883
+    keepalive: 60
+    topics:
+      pub: cnc/setpoint
+      sub: cnc/status/#
   axes:             # map of maps -> all of them are used in the machine simulator
     X: 
       length: 1                            #[meters]

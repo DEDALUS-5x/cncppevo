@@ -48,7 +48,7 @@ namespace cncpp{
        */
       Machine(const string &settings_file);
       Machine(){ }
-      ~Machine() { }
+      ~Machine();
 
       /*
         ____        _     _ _                       _   _               _     
@@ -143,6 +143,13 @@ namespace cncpp{
        * @param message message defined in the mqtt protocol
        */
       void on_message(const struct mosquitto_message *message) override;
+
+      /**
+       * 
+       * @brief
+       * @param rapid flag for rapid motion
+       */
+      void sync(bool rapid);
 
 
     private:  
