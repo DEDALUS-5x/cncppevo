@@ -24,7 +24,7 @@ Program::Program(const std::string &f, Machine *m) : _filename(f), _machine(m) {
 
 Program::~Program(){
 
-  if(~_debug)
+  if(_debug)
     cerr << style::italic << format("Destroying program {:} with {:} blocks", _filename, size()) << style::reset << endl;
 
 }

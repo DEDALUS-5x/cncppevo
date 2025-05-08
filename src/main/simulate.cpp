@@ -103,3 +103,6 @@ int main(int argc, char *argv[]){
 }
 
 
+
+// check for running in feal time -> by running the gcode we see that it spend 7.875 seconds or whatever. Runna mettenedo time prima del comando cosi vedi quanto tempo impiega il computer a runnare -> deve essere meno per poter essere real time
+
