@@ -14,10 +14,16 @@ The finite state machine has:
 ******************************************************************************/
 
 #include "fsm.hpp"
-    
-using namespace std;
-    
+#include <rang.hpp>
+#include <fmt/core.h>
+#include <fstream>
+#include <sstream>
+#include "cncpp.hpp"
 
+using namespace cncpp;
+using namespace std;
+using namespace rang;
+using namespace fmt;
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
 // struct FSMData{
@@ -81,7 +87,7 @@ state_t do_idle(T &data) {
   cerr << "Press " << fg::green << "<space>" << fg::reset << " to run, " << fg::blue << "z" << fg::reset << " to go to zero, " << fg::red << "q" << fg::reset << " to quit" << endl;
 
   // step 2 -> select next state according to keypress
-  char key = keystrocker::read_key();
+  char key; //= keystrocker::read_key();
   switch(key){
 
     case ' ': 
@@ -158,9 +164,9 @@ state_t do_load_block(T &data) {
       next_state = STATE_NO_MOTION;
       break;
     
-    case Block::BlockType::RAPID_MOTION:
+    case Block::BlockType::RAPID:
       next_state = STATE_RAPID_MOTION;
-      break:
+      break;
 
     case Block::BlockType::LINE:
     case Block::BlockType::CWA:

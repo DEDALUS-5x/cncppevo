@@ -139,27 +139,26 @@ namespace cncpp{
 
   }
 
-  void Machine::on_message(const struct mosquitto_message *message){
+void Machine::on_message(const struct mosquitto_message *message)  {
+  string payload((char *)message->payload, message->payloadlen);
+  json j;
 
-    string payload((char *)message -> payload, message -> payloadlen);
-    json j;
+  try {
+    j = json::parse(payload);
 
-    try{
-      j = json::parse(payload);
+  } catch (json::parse_error &e) {
 
-    } catch(json::parse_error &e){
-      cerr << fg::red << "Canont parse JSON payload: " << e.what() << endl;
-      cerr << "Payload was: " << style::bold << payload << style::reset << fg::reset << endl;
+    cerr << fg::red << "Cannot parse JSON payload: " << e.what() << endl
+         << "Payload was: " << style::bold << payload
+         << style::reset << fg::reset << endl;
 
-      return;
-    }
-
-    _position = Point(j.value<data_t>("x", 0) * 1000,
-                      j.value<data_t>("y", 0) * 1000,
-                      j.value<data_t>("z", 0) * 1000);
-    _error = j.value<data_t>("error", 0) * 1000;          // * 1000 because the cnc simulator works in meters
-
+    return;
   }
+  
+  _position = Point(j.value<data_t>("x", 0)*1000, j.value<data_t>("y", 0) * 1000, j.value<data_t>("z", 0) * 1000);
+  _error = j.value<data_t>("error", 0) * 1000;
+}
+
 
   void Machine::sync(bool rapid){ // synchronize the machine with the current values
     Point pos = (_setpoint + _offset);
