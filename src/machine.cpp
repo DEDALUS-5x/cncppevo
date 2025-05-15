@@ -27,7 +27,9 @@ namespace cncpp{
 
   Machine::~Machine(){
 
-    if(disconnect() != MOSQ_ERR_SUCCESS){
+    bool res = disconnect();
+
+    if(res != MOSQ_ERR_SUCCESS){
       cerr << fg::red << "Cannot disconnect from MQTT broker " << fg::reset << endl;
     }
     mosqpp::lib_cleanup();
@@ -152,10 +154,10 @@ namespace cncpp{
       return;
     }
 
-    _position = Point(j.value("x", 0) * 1000,
-                      j.value("y", 0) * 1000,
-                      j.value("z", 0) * 1000);
-    _error = j.value("error", 0) * 1000;          // * 1000 because the cnc simulator works in meters
+    _position = Point(j.value<data_t>("x", 0) * 1000,
+                      j.value<data_t>("y", 0) * 1000,
+                      j.value<data_t>("z", 0) * 1000);
+    _error = j.value<data_t>("error", 0) * 1000;          // * 1000 because the cnc simulator works in meters
 
   }
 
@@ -190,35 +192,71 @@ namespace cncpp{
 */
 
 #ifdef MACHINE_MAIN
-
 #include <iostream>
-using namespace cncpp;
+#include <csignal>
+#include <chrono>
+#include <thread>
+using namespace std;
 
-int main(int argc, const char *argv[]){
+bool Running = true;
 
-  if(argc < 2){ //we need at least 2 arguments, so 
-
-    // argv[0] is the name of the exucatble
-    // argv[1] is the first argument of the executable
-
-    cerr << "Usage: " << argv[0] << " <settings_file" << endl;
+int main(int argc, const char *argv[]) {
+  if (argc < 2) {
+    cerr << "Usage: " << argv[0] << " <settings_file.yml>" << endl;
     return 1;
-
   }
 
   cncpp::Machine machine(argv[1]);
-  cout << "Inizialized machine: " << endl << machine.desc() << endl;
-
-  cncpp::Machine default_machine = Machine();
-  cout << "Default machine: " << endl << default_machine.desc() << endl;
-
+  cout << machine.desc() << endl;
+  
+  cncpp::Machine default_machine = cncpp::Machine();
+  cout << "Default machine:" << endl;
+  cout << default_machine.desc() << endl;
   default_machine.load(argv[1]);
-  cout << "Default machine after loading: " << endl << default_machine.desc() << endl;
+  cout << "Default machine after loading:" << endl;
+  cout << default_machine.desc() << endl;
+
+  // TEST MQTT communicatino -> go to goodies folder and launch with ./broker_start 
+  // high priority message that comes from the kernel -> let's deal the signal, because if it not managed, ctrl+c immediately kills the process, so let's do something more clean.
+  // SIGINT corresponds to ctr+c
+  // the function used in signal can only access global variables, in this case "running"
+  signal(SIGINT, [](int s) { Running = false; });
+
+  // in this way we cleanly exit the loop
+
+  machine.setpoint(0, 0, 0);
+  machine.connect();
+  machine.listen_start();
+
+  // we want to stop the program when using ctrl+c
+
+
+  while(Running) {
+    this_thread::sleep_for(chrono::seconds(1));
+    machine.sync(false);        // synchronize the local machine with the remote machine through MQTT
+    cout << "Error: " << machine.error() << endl;
+  }
+  machine.listen_stop();
+
+
 
   return 0;
-
-
 }
 
-
 #endif
+
+/*
+
+runna da una finestra con install
+
+usr/bin/mosquitto_pub -t cnc/status    is the topic
+
+usr/bin/mosquitto_pub -t cnc/status -m 'hello' -> we get an error because we are not sending a json object
+
+usr/bin/mosquitto_pub -t cnc/status -m '{"error":0.5}' 
+
+the machin is running in meters and the controller in millimiters -> if we send error 2 the machine will se 2000
+But the ocnversion give us an integer but we need also float, so modify it as j.value<data_t>("error", 0) * 1000
+So you can send also 0.5
+
+*/
