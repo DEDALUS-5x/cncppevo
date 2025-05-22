@@ -91,6 +91,7 @@ namespace cncpp{
       data_t error() const { return _error;}
       data_t max_error() const { return _max_error;}
       Point position() const { return _position;}
+      Point position(Point p) { _position = p, return _position;}
       Point setpoint() const { return _setpoint;}
       Point setpoint(Point p) {_setpoint = p; return _setpoint;}      // also writer 
       Point setpoint(data_t x, data_t y, data_t z){                   // also writer

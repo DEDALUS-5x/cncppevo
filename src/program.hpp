@@ -103,7 +103,7 @@ namespace cncpp{
        /_/   \_\___\___\___||___/___/\___/|_|  |___/
                                                     
       */
-
+      iterator current() { return _current;}
       bool done() const { return _done;}
 
     private:
