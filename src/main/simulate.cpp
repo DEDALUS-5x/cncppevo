@@ -16,6 +16,8 @@
 #include <rang.hpp>
 #include <fmt/core.h>
 
+#include <cstdlib>
+
 using namespace std;
 using namespace cncpp;
 using namespace rang;
@@ -98,6 +100,8 @@ int main(int argc, char *argv[]){
 
   cerr << style::bold << "Done" << style::reset << endl;
 
+
+  system("python3 plots.py");
 
   return 0;
 }
