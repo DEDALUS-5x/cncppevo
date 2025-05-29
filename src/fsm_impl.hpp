@@ -78,7 +78,7 @@ state_t do_idle(T &data) {
   cerr << "Press " << fg::green << "<space>" << fg::reset << " to run, " << fg::blue << "z" << fg::reset << " to go to zero, " << fg::red << "q" << fg::reset << " to quit" << endl;
 
   // step 2 -> select next state according to keypress
-  char key; //= keystrocker::read_key();
+  char key = keystroker::read_key();
   switch(key){
 
     case ' ': 
