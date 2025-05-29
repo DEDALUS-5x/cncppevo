@@ -14,7 +14,8 @@ Main executable
 #include <iostream>
 #include <rang.hpp>
 #include <chrono>
-#include "../fsm.cpp"
+// #include "../fsm.cpp"
+// using the new version of gv_fsm, we don't need to include the cpp file, but only the .hpp one
 
 using namespace std;
 using namespace rang;
