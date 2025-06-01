@@ -29,7 +29,7 @@ namespace cncpp{
 
     bool res = disconnect();
 
-    if(res != MOSQ_ERR_SUCCESS){
+    if(_connected && res != MOSQ_ERR_SUCCESS){
       cerr << fg::red << "Cannot disconnect from MQTT broker " << fg::reset << endl;
     }
     mosqpp::lib_cleanup();
@@ -181,8 +181,11 @@ void Machine::on_message(const struct mosquitto_message *message)  {
     j["z"] = pos.z();
     j["rapid"] = rapid;         // flag in order to tell if the movement is rapid or not
     string payload = j.dump();  // dump method convert a json structure into a string
-    publish(NULL, _pub_topic.c_str(), payload.length(), payload.c_str(), 0, false);
-
+    int rc = publish(NULL, _pub_topic.c_str(), payload.length(), payload.c_str(), 0, false);
+    if (rc != MOSQ_ERR_SUCCESS) {
+      throw CNCError("Cannot publish to topic " + _pub_topic, this);
+    }
+    
     loop();                     // every sync call the mqtt communication updates thanks to loop() function
 
   }

@@ -238,36 +238,40 @@ state_t do_rapid_motion(T &data) {
   data_t duration;
   Block &b = *data.program.current();
 
-  // STEPS 
-  // step 1 -> synch the machine
-  data.machine.sync(true);
+  try{
+    // STEPS 
+    // step 1 -> synch the machine
+    data.machine.sync(true);
 
-  // step 2 -> exit if error is small or max time has elapsed
-  duration = b.length() / data.machine.fmax() * 60.0 * 2;
-  if(data.machine.error() < data.machine.max_error() || data.t_blk > duration){
+    // step 2 -> exit if error is small or max time has elapsed
+    duration = b.length() / data.machine.fmax() * 60.0 * 2;
+    if(data.machine.error() < data.machine.max_error() || data.t_blk > duration){
 
-    cerr << "Rapid block " << b.desc() << " completed." << endl;
-    cerr << "Duration: " << duration << " s" << endl;
-    cerr << "Elapsed time: " << data.t_blk << " s" << endl;
-    cerr << "Error: " << data.machine.error() << " mm" << endl;
-    next_state = cncpp::STATE_LOAD_BLOCK;
+      cerr << "Rapid block " << b.desc() << " completed." << endl;
+      cerr << "Duration: " << duration << " s" << endl;
+      cerr << "Elapsed time: " << data.t_blk << " s" << endl;
+      cerr << "Error: " << data.machine.error() << " mm" << endl;
+      next_state = cncpp::STATE_LOAD_BLOCK;
+    }
+
+    // step 3 -> exit for ctrl-c
+    if(stop_requested){
+
+      cerr << "Rapid block " << b.desc() << " skipped" << endl;
+      stop_requested = false;
+      next_state = cncpp::STATE_LOAD_BLOCK;
+    }
+
+    // step 4 -> get current position and print out values table
+    Point p = data.machine.position();
+    Point tgt = b.target();
+    data_t lambda = min(data.machine.error() / b.length(), 1.0);
+
+    cout << fmt::format("{:0>3d} {:0>2d} {:.3f} {:.3f} {:.3f} {:.3f} {:.1f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f}", b.n(), static_cast<int>(b.type()), data.t_tot, data.t_blk, lambda, lambda * b.length(), data.machine.fmax(), b.profile().current_acc, tgt.x(), tgt.y(), tgt.z(), p.x(), p.y(), p.z()) << endl;
+
+  } catch (const bad_optional_access &e){
+    cerr << fg::yellow << "Waiting for machine position" << fg::reset << endl;
   }
-
-  // step 3 -> exit for ctrl-c
-  if(stop_requested){
-
-    cerr << "Rapid block " << b.desc() << " skipped" << endl;
-    stop_requested = false;
-    next_state = cncpp::STATE_LOAD_BLOCK;
-  }
-
-  // step 4 -> get current position and print out values table
-  Point p = data.machine.position();
-  Point tgt = b.target();
-  data_t lambda = min(data.machine.error() / b.length(), 1.0);
-
-  cout << fmt::format("{:0>3d} {:0>2d} {:.3f} {:.3f} {:.3f} {:.3f} {:.1f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f}", b.n(), static_cast<int>(b.type()), data.t_tot, data.t_blk, lambda, lambda * b.length(), data.machine.fmax(), b.profile().current_acc, tgt.x(), tgt.y(), tgt.z(), p.x(), p.y(), p.z()) << endl;
-
   // step 5 -> increment timers
   data.t_tot += data.machine.tq();
   data.t_blk += data.machine.tq();
@@ -293,7 +297,12 @@ state_t do_interp_motion(T &data) {
   Point tgt = b.interpolate(data.t_blk, lambda, speed);
 
   // step 2 -> print values table
-  cout << fmt::format("{:0>3d} {:0>2d} {:.3f} {:.3f} {:.3f} {:.3f} {:.1f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f}", b.n(), static_cast<int>(b.type()), data.t_tot, data.t_blk, lambda, lambda * b.length(), speed, b.profile().current_acc, tgt.x(), tgt.y(), tgt.z(), p.x(), p.y(), p.z()) << endl;
+  try{
+    cout << fmt::format("{:0>3d} {:0>2d} {:.3f} {:.3f} {:.3f} {:.3f} {:.1f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f}", b.n(), static_cast<int>(b.type()), data.t_tot, data.t_blk, lambda, lambda * b.length(), speed, b.profile().current_acc, tgt.x(), tgt.y(), tgt.z(), p.x(), p.y(), p.z()) << endl;
+  
+  } catch(const bad_optional_access &e){
+    cout << fmt::format("{:0>3d} {:0>2d} {:.3f} {:.3f} {:.3f} {:.3f} {:.1f} {:.3f} {:.3f} {:.3f} {:.3f} {:>3} {:>3} {:>3}", b.n(), static_cast<int>(b.type()), data.t_tot, data.t_blk, lambda, lambda * b.length(), speed, b.profile().current_acc, tgt.x(), tgt.y(), tgt.z(), "-", "-", "-") << endl;  
+  }
 
   // step 3 -> sync the machine
   data.machine.setpoint(tgt);

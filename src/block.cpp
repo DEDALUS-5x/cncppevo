@@ -380,6 +380,8 @@ Point Block::start_point(){
 void Block::compute(){
 
   // Referencing to profile fields
+  _profile.l = _length;
+
 
   data_t &dt = _profile.dt;
   data_t &dt_1 = _profile.dt_1;
@@ -388,7 +390,7 @@ void Block::compute(){
   data_t &a = _profile.a;
   data_t &d = _profile.d;
   data_t &f_m = _profile.f;
-  data_t &l = _length;            // trick, l is like an alias
+  data_t &l = _profile.l;            // trick, l is like an alias
   data_t &A = _acc;               // nominal accelaration
   data_t dq;
 
@@ -453,7 +455,6 @@ void Block::compute(){
 
   */
 
-  _profile.l = l;
 }
 
 void Block::calc_arc() {

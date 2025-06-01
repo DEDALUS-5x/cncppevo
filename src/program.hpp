@@ -53,7 +53,7 @@ namespace cncpp{
        * @param append
        * 
        */
-      void load(const string &filename, bool append = false);
+      void load(const std::string &filename, bool append = false);
 
       string desc(bool colored = true) const override;
 
