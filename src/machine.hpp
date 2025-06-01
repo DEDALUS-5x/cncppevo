@@ -29,7 +29,7 @@ using json = nlohmann::json;
 
 namespace cncpp{
 
-  class Machine final : Object, mosquittopp{
+  class Machine final : Object, public mosquittopp{
 
     public:
 
@@ -176,7 +176,7 @@ namespace cncpp{
       string _pub_topic;                  // publish setpoints
       string _sub_topic;                  // get current position
       char _msg_buffer[MQTT_BUFLEN];
-
+      bool _connected = false;
 
   };
 }

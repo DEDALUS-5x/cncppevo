@@ -106,8 +106,8 @@ state_t do_idle(T &data) {
   data.t_tot = data.t_blk = 0.0;
 
   // step 4 -> synch
-  data.machine.sync(false);
-
+  // data.machine.sync(false);
+  data.machine.loop();
   return next_state;
 }
 
@@ -182,14 +182,23 @@ state_t do_load_block(T &data) {
 template<class T> 
 state_t do_go_to_zero(T &data) {
   state_t next_state = cncpp::NO_CHANGE;
-
+  data_t distance = INFINITY;
+  auto &m = data.machine;
   // STEPS
 
   // step 1 -> synch machine setpoint
   data.machine.sync(true);
 
-  // step 2 -> check if zero has been reached
-  if(data.machine.error() < data.machine.max_error()){
+  if (m.position().is_complete()) {
+    // Don't rely on error, for it is calculated ex-post, so we might get the
+    // error at the end of previous loop (ie too small)
+    distance = m.setpoint().delta(m.position()).length();
+  }
+  cerr << "Position: " << m.position().desc()
+      << " Distance: " << style::bold << distance << style::reset << endl;
+  
+  // 2. check if zero has been reached
+  if (m.position().is_complete() && distance < m.max_error()) {
     next_state = STATE_IDLE;
   }
 
@@ -234,7 +243,7 @@ state_t do_rapid_motion(T &data) {
   data.machine.sync(true);
 
   // step 2 -> exit if error is small or max time has elapsed
-  duration = b.length() / data.machine.fmax() * 60.0;
+  duration = b.length() / data.machine.fmax() * 60.0 * 2;
   if(data.machine.error() < data.machine.max_error() || data.t_blk > duration){
 
     cerr << "Rapid block " << b.desc() << " completed." << endl;

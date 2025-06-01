@@ -65,7 +65,7 @@ data_t Block::Profile::lambda(data_t t, data_t &s){
 
   } else{
 
-    r = 1.0;
+    r = l;
     s = 0.0;
     current_acc = 0.0;
   }

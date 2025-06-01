@@ -49,11 +49,11 @@ namespace cncpp{
     _offset    = Point(machine["offset"][0].as<data_t>(), machine["offset"][1].as<data_t>(), machine["offset"][2].as<data_t>());
 
     //MQTT parameters from yml file
-    _mqtt_host = data["mqtt"]["host"].as<string>("localhost");    // inside () there is the default
-    _mqtt_port = data["mqtt"]["port"].as<int>(1883);
-    _mqtt_keepalive = data["mqtt"]["keepalive"].as<int>(60);
-    _pub_topic = data["mqtt"]["topics"]["pub"].as<string>("cnc/setpoint");
-    _sub_topic = data["mqtt"]["topics"]["sub"].as<string>("cnc/status/#");  // # is a wildcard
+    _mqtt_host = machine["mqtt"]["host"].as<string>("localhost");    // inside () there is the default
+    _mqtt_port = machine["mqtt"]["port"].as<int>(1883);
+    _mqtt_keepalive = machine["mqtt"]["keepalive"].as<int>(60);
+    _pub_topic = machine["mqtt"]["topics"]["pub"].as<string>("cnc/setpoint");
+    _sub_topic = machine["mqtt"]["topics"]["sub"].as<string>("cnc/status/#");  // # is a wildcard
 
   }
 
@@ -108,6 +108,7 @@ namespace cncpp{
       
       throw CNCError("Cannot unsubscribe to topic " + _sub_topic, this);
     }
+
   }
 
   void Machine::on_connect(int rc){
@@ -115,13 +116,19 @@ namespace cncpp{
     if(_debug){
       cerr << fg::yellow << style::italic << "Connected to broker " << mqtt_host() << fg::reset << endl;
     }
+
+    _position.reset();
+    _error = INFINITY;
+    _connected = true;
   }
 
   void Machine::on_disconnect(int rc){
 
-      if(_debug){
+    if(_debug){
         cerr << fg::yellow << style::italic << "Disconnected to broker " << mqtt_host() << fg::reset << endl;
     }
+
+    _connected = false;
   }
 
   void Machine::on_subscribe(int mid, int qos_count, const int *qos){
@@ -129,6 +136,9 @@ namespace cncpp{
     if(_debug){
         cerr << fg::yellow << style::italic << "Subscribed to topic " << mqtt_host() << fg::reset << endl;
     }
+
+    _position.reset();
+    _error = INFINITY;
   }
 
   void Machine::on_unsubscribe(int mid){
@@ -136,6 +146,9 @@ namespace cncpp{
     if(_debug){
         cerr << fg::yellow << style::italic << "Unsubscribed from topic " << mqtt_host() << fg::reset << endl;
     }
+
+    _position.reset();
+    _error = INFINITY;
 
   }
 

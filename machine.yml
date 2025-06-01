@@ -1,7 +1,7 @@
 ---
 
 machine:
-  A: 5.0            # max acceleration      [meters/secondssquare]
+  A: 10.0            # max acceleration      [meters/secondssquare]
   tq: 0.005         # step time             [milliseconds]
   fmax: 10000       # maximum feedrate      [meters/minute]
   max_error: 0.005  # maximum allowable error [millimeters]
@@ -15,8 +15,8 @@ machine:
     port: 1883
     keepalive: 60
     topics:
-      pub: cnc/setpoint
-      sub: cnc/status/#
+      pub: "cnc/setpoint"
+      sub: "cnc/status/#"
   axes:             # map of maps -> all of them are used in the machine simulator
     X: 
       length: 1                            #[meters]
