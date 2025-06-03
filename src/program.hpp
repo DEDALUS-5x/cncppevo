@@ -49,8 +49,8 @@ namespace cncpp{
       /**
        * 
        * @brief it loads the gcode file. Here it replace the current filename
-       * @param filename
-       * @param append
+       * @param filename reference to the string containing the name of the gcode file
+       * @param append flag to be set high when the user wants to append a new gcode file to the already stored one. It's set to false by default
        * 
        */
       void load(const std::string &filename, bool append = false);
@@ -60,7 +60,7 @@ namespace cncpp{
       /**
        * 
        * @brief it can append a gcode line on the present list -> concatenation
-       * @param line
+       * @param line gcode line containing the new Block that will be added to the current Program instance
        * 
        */
       Program &operator<<(std::string line);
@@ -111,6 +111,7 @@ namespace cncpp{
        /_/   \_\___\___\___||___/___/\___/|_|  |___/
                                                     
       */
+     
       iterator current() { return _current;}
       bool done() const { return _done;}
 

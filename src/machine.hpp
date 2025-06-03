@@ -63,6 +63,7 @@ namespace cncpp{
 
       void load(const string &settings_file);
       string desc(bool colored = true) const override;
+      
       /**
        * 
        * @brief quantize time -> starting from t0 and having a delta t, it returns the number of sample to the next tick after the the delta t. In a nutshell, it's a rounding up to the next multiple of tq
