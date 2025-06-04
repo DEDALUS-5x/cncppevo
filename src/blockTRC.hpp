@@ -25,9 +25,9 @@ namespace cncpp{
     public:
 
       enum class TRCType{
-        NONE = 0,
-        LEFT = 1,
-        RIGHT = 2
+        NONE = 40,
+        LEFT = 41,
+        RIGHT = 42
       };
 
       static const map<TRCType, string> trc_types;
@@ -44,6 +44,8 @@ namespace cncpp{
       BlockTRC(string line, BlockTRC &prev);
       ~BlockTRC();
 
+      BlockTRC &parse(const Machine *m);
+
       /*
            _                                        
           / \   ___ ___ ___  ___ ___  ___  _ __ ___ 
@@ -54,14 +56,26 @@ namespace cncpp{
       */
       
       bool trc() const { return _trc; }
+      bool shaping() const { return _shaping_required; }
 
       BlockTRC &operator=(BlockTRC &b);
 
+      /**
+       * 
+       * @brief method that returns the required arc block to be added between the current block instance and the previous one. Advanced TRC method
+       * @return BlockTRC instance
+       * 
+       */
+      BlockTRC arc_shaping();
+
     private:
 
+      TRCType _trc_type = TRCType::NONE;
       bool _trc = false;
       bool _shaping_required = false;
 
+      data_t angle_with_prev();
+      void parse_token(string token);
 
   };
 }
