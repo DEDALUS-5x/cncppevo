@@ -105,8 +105,10 @@ BlockTRC &BlockTRC::parse(const Machine *m){
 
     case TRCType::NONE:
       _trc = false;
+      break;
 
     case TRCType::LEFT:
+
     case TRCType::RIGHT:
 
       _trc = true;
@@ -128,13 +130,43 @@ BlockTRC &BlockTRC::parse(const Machine *m){
   return *this;
 }
 
+string BlockTRC::desc(bool colored) const{
+
+  if(!_parsed){
+    return format("[{:>3}] {:} (not parsed yet)", _n, _line);
+  }
+
+  stringstream ss;
+
+  auto color = color::red;
+  
+  if(_type == BlockType::NO_MOTION)
+    color = color::gray;
+  else if (_type == BlockType::RAPID)
+    color = color::magenta;
+  
+  ss << format("[{:>3}] ", _n);
+  if (colored){
+    ss << format("G{:0>2} ", styled(static_cast<int>(_type), fmt::fg(color)));
+
+  }else
+    ss << format("G{:0>2} ", static_cast<int>(_type));
+    ss << format("G{:0>2} ", static_cast<int>(_trc_type));
+    ss << format("({:-^9}) ", Block::types.at(_type)) << _target.desc();
+    ss << format(" F{:>5.0f} S{:>4.0f} ", _feedrate, _spindle);
+    ss << format("T{:0>2} M{:0>2} ", _tool, _m);
+    ss << format("L{:>6.2f}mm DT{:>6.2f}s", _length, _profile.dt);
+  return ss.str();
+
+}
+
+
 
 BlockTRC BlockTRC::arc_shaping(){
 
   _shaping_required = false;
 
   // compute the parameters of the new arc to be added 
-
 
 }
 
@@ -233,7 +265,45 @@ void BlockTRC::parse_token(string token){
 
 data_t BlockTRC::angle_with_prev(){
 
+
 }
+
+
+#ifdef BLOCKTRC_MAIN
+
+#include "machine.hpp"
+#include <iostream>
+
+using namespace cncpp;
+using namespace std;
+
+int main(){
+
+  cerr << "Version: " << cncpp::version() << endl;
+  Machine m = Machine();
+  auto b1 = BlockTRC("N10 G00 x100 y200 z10 F5000 S5000 T1").parse(&m);
+  auto b2 = BlockTRC("N20 G01 X10 y20", b1).parse(&m);
+  
+  cerr << "b1: " << b1.desc() << endl;
+  cerr << "b2: " << b2.desc() << endl;
+  
+  // Walk along b2
+  b2.walk([&](Block &b, data_t t, data_t l, data_t s) {
+    Point pos = b.interpolate(l);
+    cout << format("{:} {:} {:} {:} {:} {:}", t, l, s, pos.x(), pos.y(), pos.z()) << endl;
+  });
+
+  cerr << "---- adding g40 block ----" << endl;
+  auto b3 = BlockTRC("N20 G41 G01 X10 y20", b1).parse(&m);
+  cerr << "b3: " << b3.desc() << endl;
+
+  return 0;
+}
+
+
+
+#endif
+
 
 
 

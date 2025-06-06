@@ -58,6 +58,15 @@ namespace cncpp{
       bool trc() const { return _trc; }
       bool shaping() const { return _shaping_required; }
 
+      /*
+        ____        _     _ _                       _   _               _     
+       |  _ \ _   _| |__ | (_) ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+       | |_) | | | | '_ \| | |/ __| | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+       |  __/| |_| | |_) | | | (__  | | | | | |  __/ |_| | | | (_) | (_| \__ \
+       |_|    \__,_|_.__/|_|_|\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                              
+      */
+
       BlockTRC &operator=(BlockTRC &b);
 
       /**
@@ -67,6 +76,8 @@ namespace cncpp{
        * 
        */
       BlockTRC arc_shaping();
+      string desc(bool colored = true) const override;
+
 
     private:
 

@@ -149,6 +149,10 @@ add_executable(block_test ${SRC_DIR}/point.cpp ${SRC_DIR}/block.cpp ${SRC_DIR}/m
 target_compile_definitions(block_test PRIVATE BLOCK_MAIN)
 target_link_libraries(block_test PRIVATE cncpp_lib)
 
+add_executable(blockTRC_test ${SRC_DIR}/point.cpp ${SRC_DIR}/blockTRC.cpp ${SRC_DIR}/machine.cpp)
+target_compile_definitions(blockTRC_test PRIVATE BLOCKTRC_MAIN)
+target_link_libraries(blockTRC_test PRIVATE cncpp_lib)
+
 add_executable(machine_test ${SRC_DIR}/machine.cpp)
 target_compile_definitions(machine_test PRIVATE MACHINE_MAIN)
 target_link_libraries(machine_test PRIVATE cncpp_lib)
