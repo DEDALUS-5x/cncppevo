@@ -54,6 +54,11 @@ class Point : Object{
 
     data_t length() const;
 
+    /**
+     * 
+     * @brief Scale the vector by the input factor. Use for normalizing
+     * 
+     */
     void scale(data_t factor);
 
     /**
