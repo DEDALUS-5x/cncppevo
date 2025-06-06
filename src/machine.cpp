@@ -23,6 +23,8 @@ namespace cncpp{
 
     load(settings_file);
     mosqpp::lib_init();
+
+    _selected_tool = static_cast<int>(ToolType::TOOL_1);
   }
 
   Machine::~Machine(){
@@ -47,6 +49,11 @@ namespace cncpp{
     _fmax      = machine["fmax"].as<data_t>();
     _zero      = Point(machine["zero"][0].as<data_t>(), machine["zero"][1].as<data_t>(), machine["zero"][2].as<data_t>());
     _offset    = Point(machine["offset"][0].as<data_t>(), machine["offset"][1].as<data_t>(), machine["offset"][2].as<data_t>());
+    
+    // Adding tools parameters
+    _tools.emplace_back(machine["tools"][1].as<data_t>());
+    _tools.emplace_back(machine["tools"][2].as<data_t>());
+    _tools.emplace_back(machine["tools"][3].as<data_t>());
 
     //MQTT parameters from yml file
     _mqtt_host = machine["mqtt"]["host"].as<string>("localhost");    // inside () there is the default
@@ -72,7 +79,6 @@ namespace cncpp{
 
     return ss.str();
   }
-
 
   data_t Machine::quantize(data_t t, data_t &dq) const{
 

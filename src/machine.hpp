@@ -19,6 +19,7 @@
 #include <mosquittopp.h>
 #include <mosquitto.h>
 #include <nlohmann/json.hpp>
+#include <vector>
 
 using namespace std;
 using namespace mosqpp;
@@ -32,6 +33,13 @@ namespace cncpp{
   class Machine final : Object, public mosquittopp{
 
     public:
+
+      enum class ToolType{
+        TOOL_1 = 1,
+        TOOL_2 = 2,
+        TOOL_3 = 3,
+        NO_TOOL
+      };
 
       /*
         _     _  __                      _      
@@ -102,6 +110,7 @@ namespace cncpp{
 
         return _setpoint;
       }
+      data_t machine_tool_radius() const { return _tools[_selected_tool]; }
 
 
       string mqtt_host() const { return "mqtt://" + _mqtt_host + ":" + to_string(_mqtt_port); }
@@ -170,6 +179,9 @@ namespace cncpp{
       data_t _fmax;
       data_t _error = INFINITY;                // current error, at the beginning we want a large error in order to go the initial starting position
       data_t _max_error = 0.005;          // maximum allowable error -> 5 micrometers
+
+      vector<data_t> _tools;
+      int _selected_tool;
 
       string _mqtt_host = "localhost";    // broker running on the same machine (our assumption)
       int _mqtt_port = 1883;
