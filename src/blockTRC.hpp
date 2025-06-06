@@ -71,7 +71,8 @@ namespace cncpp{
 
       /**
        * 
-       * @brief method that returns the required arc block to be added between the current block instance and the previous one. Advanced TRC method
+       * @brief method that returns the required arc block to be added between the current block instance and the previous one. Advanced TRC method.
+       * It computes the vector between the previous starting point and the actual target. This vector will define the arc center position
        * @return BlockTRC instance
        * 
        */
