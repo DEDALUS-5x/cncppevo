@@ -175,6 +175,15 @@ namespace cncpp{
 
       const Profile &profile() const { return _profile;}    // the output is the reference to the original profile object in order to save more computation resources. The _profile needs to be a constant of the block, because it is modified only during the parsing phase, it's must be coupled
 
+      /**
+       * 
+       * @brief setter function for the target coordinates
+       * @param x coordinate
+       * @param y coordinate
+       * 
+       */
+      void update_target(data_t x, data_t y);
+
     protected:
 
 

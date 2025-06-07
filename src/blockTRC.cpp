@@ -181,7 +181,33 @@ void BlockTRC::shift_prev_target(){
 }
 
 void BlockTRC::line_line_shift(BlockTRC *p){
+  Point sp = p -> start_point();                // starting point of the previous block
+  Point tp = p -> target();                     // target point of the previous block
+  Point sc = start_point();                     // starting point of the current block
+  Point tc = target();                          // target point of the current block
+  data_t r = _machine -> machine_tool_radius(); // current tool radius
 
+  Point v1 = tp.delta(sp);
+  Point v2 = tc.delta(sc);
+  v1.scale(1 / v1.length());
+  v2.scale(1 / v2.length());
+
+  // find line parameters
+  data_t a1 = v1.y() / v1.x();
+  data_t a2 = v2.y() / v2.x();
+  data_t b1 = tp.y() - a1 * tp.x();
+  data_t b2 = tc.y() - a2 * tc.x();
+
+  data_t offset_side = (p -> _trc_type == TRCType::LEFT) ? 1.0 : -1.0;
+  data_t offset_value = offset_side * r * sqrt(1 + pow(a1, 2));
+  b1 += offset_value;
+  b2 += offset_value;
+
+  // intersection
+  data_t xd = (b2 - b1) / (a1 - a2);
+  data_t yd = a1 * xd + b1;
+
+  p -> update_target(xd, yd);
 }
 
 void BlockTRC::line_arc_shift(BlockTRC *p){

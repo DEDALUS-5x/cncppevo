@@ -289,6 +289,12 @@ void Block::walk(function<void(Block &b, data_t t, data_t l, data_t s)> f){
 
 }
 
+void Block::update_target(data_t x, data_t y){
+  _target.x(x);
+  _target.y(y);
+}
+
+
 /*
   ____       _            _                        _   _               _     
  |  _ \ _ __(_)_   ____ _| |_ ___   _ __ ___   ___| |_| |__   ___   __| |___ 

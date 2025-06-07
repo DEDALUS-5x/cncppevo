@@ -73,12 +73,18 @@ namespace cncpp{
        * 
        * @brief method that returns the required arc block to be added between the current block instance and the previous one. Advanced TRC method.
        * It computes the vector between the previous starting point and the actual target. This vector will define the arc center position
-       * @return BlockTRC instance
+       * @return string corresponding to new gcode line
        * 
        */
       string arc_shaping();
+
       string desc(bool colored = true) const override;
 
+      /**
+       * 
+       * @brief main TRC function which shifts moves properly
+       * 
+       */
       void shift_prev_target();
 
       void line_line_shift(BlockTRC *p);
