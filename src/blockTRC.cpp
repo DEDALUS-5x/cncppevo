@@ -113,13 +113,15 @@ BlockTRC &BlockTRC::parse(const Machine *m){
 
       _trc = true;
 
-      if(angle_with_prev() > 3.1415){   // TODO: #define in defines.hpp for pi
+      if(angle_with_prev() > PI){   // TODO: #define in defines.hpp for pi
         
         _shaping_required = true;
       } else{
 
         _shaping_required = false;
       }
+
+      
     
     default:
       break;
@@ -157,6 +159,32 @@ string BlockTRC::desc(bool colored) const{
     ss << format("T{:0>2} M{:0>2} ", _tool, _m);
     ss << format("L{:>6.2f}mm DT{:>6.2f}s", _length, _profile.dt);
   return ss.str();
+
+}
+
+void BlockTRC::shift_prev_target(){
+
+  BlockTRC *p = dynamic_cast<BlockTRC*>(prev);
+
+  if(p -> trc()){
+    
+    if (p->type() == BlockType::LINE && type() == BlockType::LINE) {
+
+        line_line_shift(p);
+
+      } else if (p->type() == BlockType::LINE && (type() == BlockType::CWA || type() == BlockType::CCWA)) {
+        
+        line_arc_shift(p);
+      }
+  }
+
+}
+
+void BlockTRC::line_line_shift(BlockTRC *p){
+
+}
+
+void BlockTRC::line_arc_shift(BlockTRC *p){
 
 }
 

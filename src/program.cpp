@@ -66,6 +66,10 @@ void Program::load(const string &f, bool append){
 
     *this << line;
 
+    if(dynamic_cast<BlockTRC*>(back().prev) -> trc()){
+      back().shift_prev_target();
+    }
+
     if(back().shaping()){
 
       list<BlockTRC>::iterator iter = prev(this -> end());

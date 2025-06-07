@@ -79,6 +79,11 @@ namespace cncpp{
       string arc_shaping();
       string desc(bool colored = true) const override;
 
+      void shift_prev_target();
+
+      void line_line_shift(BlockTRC *p);
+      void line_arc_shift(BlockTRC *p);
+
 
     private:
 
