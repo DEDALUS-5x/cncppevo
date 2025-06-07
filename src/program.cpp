@@ -68,7 +68,12 @@ void Program::load(const string &f, bool append){
 
     if(back().shaping()){
 
-     *this << back().arc_shaping();
+      list<BlockTRC>::iterator iter = prev(this -> end());
+      BlockTRC &prev_ref = *dynamic_cast<BlockTRC*>(back().prev);
+      string arc = back().arc_shaping();
+      
+      this -> insert(iter, BlockTRC(arc, prev_ref));
+      *this << back().arc_shaping();
     }
   }
 
