@@ -70,6 +70,23 @@ Point Point::operator+(const Point &other) const{
   return out;
 }
 
+Point Point::operator-(const Point &other) const{
+
+  if(!is_complete() || !other.is_complete())
+    throw CNCError("Points are not complete", this);
+
+  Point out(
+
+    _x.value() - other._x.value(),
+    _y.value() - other._y.value(),
+    _z.value() - other._z.value()
+
+  );
+
+  return out;
+}
+
+
 
 Point Point::delta(const Point &other) const {
 
