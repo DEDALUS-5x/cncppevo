@@ -189,27 +189,50 @@ void BlockTRC::line_line_shift(BlockTRC *p){
 
   // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
 
-  Point v1 = tp.delta(sp);
-  Point v2 = tc.delta(sc);
-  v1.scale(1 / v1.length());
-  v2.scale(1 / v2.length());
+  if(angle_with_prev() < PI){
 
-  // find line parameters
-  data_t a1 = v1.y() / v1.x();
-  data_t a2 = v2.y() / v2.x();
-  data_t b1 = tp.y() - a1 * tp.x();
-  data_t b2 = tc.y() - a2 * tc.x();
+    Point v1 = tp.delta(sp);
+    Point v2 = tc.delta(sc);
+    v1.scale(1 / v1.length());
+    v2.scale(1 / v2.length());
 
-  data_t offset_side = (p -> _trc_type == TRCType::LEFT) ? 1.0 : -1.0;
-  data_t offset_value = offset_side * r * sqrt(1 + pow(a1, 2));
-  b1 += offset_value;
-  b2 += offset_value;
+    // find line parameters
+    data_t a1 = v1.y() / v1.x();
+    data_t a2 = v2.y() / v2.x();
+    data_t b1 = tp.y() - a1 * tp.x();
+    data_t b2 = tc.y() - a2 * tc.x();
 
-  // intersection
-  data_t xd = (b2 - b1) / (a1 - a2);
-  data_t yd = a1 * xd + b1;
+    data_t offset_side = (p -> _trc_type == TRCType::LEFT) ? 1.0 : -1.0;
+    data_t offset_value = offset_side * r * sqrt(1 + pow(a1, 2));
+    b1 += offset_value;
+    b2 += offset_value;
 
-  p -> update_target(xd, yd);
+    // intersection
+    data_t xd = (b2 - b1) / (a1 - a2);
+    data_t yd = a1 * xd + b1;
+
+    p -> update_target(xd, yd);
+
+  } else if(angle_with_prev() == PI){
+
+
+  } else{
+
+    Point vec = tp.delta(sp);
+    vec.scale(1 / length());
+    Point normal(-vec.y(), vec.x());
+    if(p -> _trc_type == TRCType::RIGHT){
+
+      normal.scale(-1);
+    }
+
+    normal.scale(r);
+    Point updated_t = p -> target() + normal;
+    p -> update_target(updated_t.x(), updated_t.y());  
+
+  }
+
+  
 }
 
 void BlockTRC::line_arc_shift(BlockTRC *p){
