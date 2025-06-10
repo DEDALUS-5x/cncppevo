@@ -51,9 +51,9 @@ namespace cncpp{
     _offset    = Point(machine["offset"][0].as<data_t>(), machine["offset"][1].as<data_t>(), machine["offset"][2].as<data_t>());
     
     // Adding tools parameters
+    _tools.emplace_back(machine["tools"][0].as<data_t>());
     _tools.emplace_back(machine["tools"][1].as<data_t>());
     _tools.emplace_back(machine["tools"][2].as<data_t>());
-    _tools.emplace_back(machine["tools"][3].as<data_t>());
 
     //MQTT parameters from yml file
     _mqtt_host = machine["mqtt"]["host"].as<string>("localhost");    // inside () there is the default

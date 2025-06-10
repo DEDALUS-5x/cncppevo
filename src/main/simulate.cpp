@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
   Point pos;
 
   // before the tabled data, we must print the columns name
-  cout << "n,type,t_tot,t,lambda,feedrate,X,Y,Z" << endl;
+  // cout << "n,type,t_tot,t,lambda,feedrate,X,Y,Z" << endl;
 
   for(auto &b : program){
 
@@ -93,15 +93,12 @@ int main(int argc, char *argv[]){
       t_tot += machine.tq();
 
       // CSV format
-      cout << format("{:},{:},{:.3f},{:.3f},{:.6f},{:.3f},{:.3f},{:.3f},{:.3f}", b.n(), b.type_name(), t_tot, t, lambda, feedrate, pos.x(), pos.y(), pos.z()) << endl;
+      // cout << format("{:},{:},{:.3f},{:.3f},{:.6f},{:.3f},{:.3f},{:.3f},{:.3f}", b.n(), b.type_name(), t_tot, t, lambda, feedrate, pos.x(), pos.y(), pos.z()) << endl;
 
     });
   }
 
   cerr << style::bold << "Done" << style::reset << endl;
-
-
-  system("python3 plots.py");
 
   return 0;
 }

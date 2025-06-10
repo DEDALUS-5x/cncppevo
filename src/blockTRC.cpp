@@ -31,7 +31,7 @@ const map<BlockTRC::TRCType, string> BlockTRC::trc_types = {
   {TRCType::RIGHT, "Right"}
 };
 
-BlockTRC::BlockTRC(string line) : Block(line) , _trc(false) {}
+BlockTRC::BlockTRC(string line) : Block(line), _trc(false) {}
 
 BlockTRC::BlockTRC(string line, BlockTRC &prev) : Block(line, prev), _trc(false) {}
 
@@ -187,6 +187,10 @@ void BlockTRC::line_line_shift(BlockTRC *p){
   Point tc = target();                          // target point of the current block
   data_t r = _machine -> machine_tool_radius(); // current tool radius
 
+  cerr << style::italic << "Starting TRC line-line between: " << endl << style::reset << this -> desc();
+  cerr << style::italic << "And previous move: " << style::reset << endl;
+  cerr << style::italic << p -> desc() << style::reset << endl << endl;
+
   // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
 
   if(angle_with_prev() < PI){
@@ -212,6 +216,7 @@ void BlockTRC::line_line_shift(BlockTRC *p){
     data_t yd = a1 * xd + b1;
 
     p -> update_target(xd, yd);
+    cerr << style::italic << "New target from TRC while angle < PI: " << endl <<  p -> desc() << style::reset << endl << endl;
 
   } else if(angle_with_prev() == PI){
 
@@ -228,8 +233,9 @@ void BlockTRC::line_line_shift(BlockTRC *p){
 
     normal.scale(r);
     Point updated_t = p -> target() + normal;
-    p -> update_target(updated_t.x(), updated_t.y());  
-
+    p -> update_target(updated_t.x(), updated_t.y()); 
+    cerr << style::italic << "New target from TRC while angle > PI: " << endl <<  p -> desc() << style::reset << endl << endl;
+ 
   }
 
   
@@ -241,6 +247,10 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
   data_t r = _machine -> machine_tool_radius(); 
 
   // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
+
+  cerr << style::italic << "Starting TRC line-arc between: " << endl << style::reset << this -> desc();
+  cerr << style::italic << "And previous move: " << style::reset << endl;
+  cerr << style::italic << p -> desc() << style::reset << endl;
 
   Point v = tp.delta(sp);
   v.scale(1 / v.length());
