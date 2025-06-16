@@ -87,6 +87,9 @@ void Program::load(const string &f, bool append){
       BlockTRC *corner = new BlockTRC(arc, pr_tmp);
       corner -> set_shaping_corner();
 
+      back() -> prev = corner;
+      corner -> next = back();
+
       this -> insert(iter, corner);
       corner -> parse(_machine);
       // *this << back() -> arc_shaping();
