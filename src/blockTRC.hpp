@@ -91,6 +91,7 @@ namespace cncpp{
       void line_line_shift(BlockTRC *p);
       void line_arc_shift(BlockTRC *p);
 
+      bool is_shaping_needed();
 
     private:
 

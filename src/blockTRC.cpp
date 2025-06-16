@@ -187,7 +187,9 @@ void BlockTRC::shift_prev_target(){
 
 }
 
-void BlockTRC::line_line_shift(BlockTRC *p){
+void BlockTRC::line_line_shift(BlockTRC *prev){
+
+  BlockTRC *p = prev;
 
   if(!p){
     cerr << "null pointer" << endl;
@@ -206,7 +208,7 @@ void BlockTRC::line_line_shift(BlockTRC *p){
 
   // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
 
-  if(angle_with_prev() < PI){
+  if(!is_shaping_needed()){
 
     Point v1 = tp.delta(sp);
     Point v2 = tc.delta(sc);
@@ -250,28 +252,42 @@ void BlockTRC::line_line_shift(BlockTRC *p){
     p -> update_target(xd, yd);
     cerr << style::italic << "New target from TRC while angle < PI: " << endl <<  p -> desc() << style::reset << endl << endl;
 
-  } else if(angle_with_prev() == PI){
-
-
   } else{
 
+
     Point vec = tp.delta(sp);
-    vec.scale(1 / length());
-    Point normal(-vec.y(), vec.x());
+    vec.scale(1 / vec.length());
+    Point normal(-vec.y(), vec.x(), 0.0);
     if(p -> _trc_type == TRCType::RIGHT){
 
       normal.scale(-1);
     }
 
+    cerr << "check here " << normal.desc() << endl;
+    cerr << p -> target().desc();
+
     normal.scale(r);
-    Point updated_t = p -> target() + normal;
-    p -> update_target(updated_t.x(), updated_t.y()); 
+
+    cerr << p -> target().desc();
+
+    if (!p->target().is_complete()) {
+      cerr << "ERROR: p->target() is incomplete!" << endl;
+      cerr << "p->target(): " << p->target().desc() << endl;
+      return;
+    }
+
+    data_t xd = (p -> target() + normal).x();
+    data_t yd = (p -> target() + normal).y();
+    cerr << xd << " " << yd << endl;
+
+        cerr << "check here " << endl;
+
+    p -> update_target(xd, yd); 
     cerr << style::italic << "New target from TRC while angle > PI: " << endl <<  p -> desc() << style::reset << endl << endl;
  
   }
-
-  
 }
+
 
 void BlockTRC::line_arc_shift(BlockTRC *p){
   Point sp = p -> start_point();
@@ -450,10 +466,46 @@ void BlockTRC::parse_token(string token){
 
 
 data_t BlockTRC::angle_with_prev(){
+  if (!prev)
+    return 0.0;
 
-  return 2.9;
+  Point p0 = this -> prev -> start_point();
+  Point p1 = this -> prev -> target();
+  Point p2 = this -> target();
+
+  Point v1 = p1.delta(p0);
+  Point v2 = p2.delta(p1);
+
+  data_t tmp1 = v1.x() * v2.x();
+  data_t tmp2 = v1.y() * v2.y();
+
+  data_t cross = v1.x() * v2.y() - v1.y() * v2.x();
+  data_t omega = atan2(cross, tmp1 + tmp2); 
+
+  cerr << "omega: " << omega << endl;
+
+  return omega;
+
 }
 
+bool BlockTRC::is_shaping_needed(){
+  if(angle_with_prev() > 0 && _trc_type == TRCType::LEFT){
+
+    return true;
+  } else if (angle_with_prev() > 0 && _trc_type == TRCType::RIGHT){
+
+    return false;
+  } else if (angle_with_prev() < 0 && _trc_type == TRCType::LEFT){
+
+    return false;
+  } else if (angle_with_prev() < 0 && _trc_type == TRCType::RIGHT){
+
+    return true;
+  } else{
+
+    return false;
+  }
+}
 
 #ifdef BLOCKTRC_MAIN
 
