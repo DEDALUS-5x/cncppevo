@@ -77,13 +77,19 @@ void Program::load(const string &f, bool append){
     }
 
     if(back() -> shaping()){
-
-      list<BlockTRC*>::iterator iter = prev(this -> end());
+      
+      list<BlockTRC*>::iterator iter = (prev(this -> end()));
       string arc = back() -> arc_shaping();
+      cerr << arc << endl;
       
       BlockTRC *pr_tmp = dynamic_cast<BlockTRC*>(back() -> prev);
-      this -> insert(iter, new BlockTRC(arc, pr_tmp));
-      *this << back() -> arc_shaping();
+
+      BlockTRC *corner = new BlockTRC(arc, pr_tmp);
+      corner -> set_shaping_corner();
+
+      this -> insert(iter, corner);
+      corner -> parse(_machine);
+      // *this << back() -> arc_shaping();
     }
   }
 

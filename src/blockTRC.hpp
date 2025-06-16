@@ -58,6 +58,7 @@ namespace cncpp{
       
       bool trc() const { return _trc; }
       bool shaping() const { return _shaping_required; }
+      void set_shaping_corner() { _shaping_corner = true; }
 
       /*
         ____        _     _ _                       _   _               _     
@@ -98,6 +99,7 @@ namespace cncpp{
       TRCType _trc_type = TRCType::NONE;
       bool _trc = false;
       bool _shaping_required = false;
+      bool _shaping_corner = false;
 
       data_t angle_with_prev();
       void parse_token(string token);

@@ -115,15 +115,8 @@ BlockTRC &BlockTRC::parse(const Machine *m){
 
       _trc = true;
 
-      if(angle_with_prev() > PI){   // TODO: #define in defines.hpp for pi
-        
-        _shaping_required = true;
-      } else{
-
-        _shaping_required = false;
-      }
-
-      
+      _shaping_required = is_shaping_needed(); 
+      cerr << "check shaping required" << endl;     
     
     default:
       break;
@@ -344,7 +337,7 @@ string BlockTRC::arc_shaping() {
   Point bisector = v1 + v2;
   bisector.scale(1 / bisector.length());
 
-  Point normal(-bisector.y(), bisector.x());
+  Point normal(-bisector.y(), bisector.x(), bisector.z());
   if (_trc_type == TRCType::RIGHT) {
     normal.scale(-1);
   }
@@ -358,10 +351,10 @@ string BlockTRC::arc_shaping() {
 
   // G2 or G3 depending junction curvature side
   data_t side = v1.x() * v2.y() - v1.y() * v2.x();
-  int arc_code = (side < 0) ? 2 : 3;
+  int arc_code = (side < 0) ? 02 : 03;
 
   std::string arc_line = fmt::format(
-    "G{:<02d} X{:.3f} Y{:.3f} I{:.3f} J{:.3f} F{:.0f}",
+    "G{:02d} X{:.3f} Y{:.3f} I{:.3f} J{:.3f} F{:.0f}",
     arc_code,
     p0.x(), p0.y(),
     i, j,
@@ -389,6 +382,8 @@ void BlockTRC::parse_token(string token){
   if(arg.empty())
     throw CNCError("Empty command argument", this);
 
+  int tmp = 0;
+
   switch(cmd){
 
   case 'N':
@@ -399,6 +394,36 @@ void BlockTRC::parse_token(string token){
 
   case 'G':
 
+    tmp = stoi(arg);
+
+    if (tmp == 0) {
+      _type = BlockType::RAPID;
+
+    } else if (tmp == 1) {
+      _type = BlockType::LINE;
+
+    } else if (tmp == 2) {
+      _type = BlockType::CWA;
+
+    } else if (tmp == 3) {
+      _type = BlockType::CCWA;
+
+    } else if (tmp == 40) {
+      _trc_type = TRCType::NONE;
+
+    } else if (tmp == 41) {
+      _trc_type = TRCType::LEFT;
+
+    } else if (tmp == 42) {
+      _trc_type = TRCType::RIGHT;
+
+    } else {
+      throw CNCError("Unknown G code: G" + arg, this);
+    }
+
+    break;
+
+/*
     if(static_cast<BlockType>(stoi(arg)) <= BlockType::NO_MOTION){
 
       _type = static_cast<BlockType>(stoi(arg));
@@ -413,6 +438,7 @@ void BlockTRC::parse_token(string token){
     }
 
     break;
+    */
 
   case 'X':
     _target.x(stod(arg));       //stod is string to double
