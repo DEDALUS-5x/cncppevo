@@ -168,6 +168,7 @@ void BlockTRC::shift_prev_target(){
 
     } else if (p -> type() == BlockType::LINE && (type() == BlockType::CWA || type() == BlockType::CCWA)) {
       
+      cerr << "check entering into line_arc" << endl;
       line_arc_shift(p);
     
     } else if ((p -> type() == BlockType::CWA || p -> type() == BlockType::CCWA ) && type() == BlockType::LINE){
@@ -287,35 +288,42 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
 
   // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
 
-  cerr << style::italic << "Starting TRC line-arc between: " << endl << style::reset << this -> desc();
+  cerr << style::italic << "Starting TRC line-arc between: " << endl << style::reset << this -> desc() << endl;
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
 
-  Point v = tp.delta(sp);
-  v.scale(1 / v.length());
-
-  Point normal(-v.y(), v.x());
-  if(p -> _trc_type == TRCType::RIGHT)
-    normal.scale(-1);
-
-  normal.scale(r);
-  Point offset = tp + normal;             // target offset by its normal * radius
-
   data_t comp_r = _r + r;                 // compensated radius
-  Point v2 = offset - _center;            // vector from the center to the offset target of the previous move
 
-  data_t dist = pow(v2.x(), 2) + pow(v2.y(), 2);
-  if(dist <= pow(comp_r, 2)){
+  // line equation y = mx + c
+  data_t m = (tp.y() - sp.y()) / (tp.x() - tp.y());
+  data_t h = sp.y() / (m * sp.x());
 
-    // report here calculus from sheets, first conclusive idea
-    data_t scaling = sqrt(pow(comp_r, 2) / dist - 1);
-    Point intersection1 = _center + Point(v2.x() - scaling * v2.y(), v2.y() + scaling * v2.x());
-    Point intersection2 = _center + Point(v2.x() + scaling * v2.y(), v2.y() - scaling * v2.x());
+  // paramters for intersection with circle
+  data_t cy = _center.y();
+  data_t cx = _center.x();
+  data_t b = 2 * (m * h - m * cy - cx);
+  data_t a = (pow(m, 2) + 1);
+  data_t c = pow(cy, 2) - pow(comp_r, 2) + pow(cx, 2) - 2 * h * cy + pow(h, 2);
 
-    Point closer_approx = (intersection1.delta(tp).length() < intersection2.delta(tp).length()) ? intersection1 : intersection2;
+  // intersection coordinates declaration
+  data_t ix;
+  data_t iy;
 
-    p -> update_target(closer_approx.x(), closer_approx.y());
-  } 
+  data_t delta = sqrt(pow(b, 2) - 4 * a * c);
+  if(delta > 0){
+
+    data_t tmp1 = (-b + delta) / (2 * a);
+    data_t tmp2 = (-b - delta) / (2 * a);
+
+    // find the narrower solution to tp
+    ix = ((tmp1 - tp.x() < tmp2 - tp.x())) ? tmp1 : tmp2;
+    iy = m * ix + h;    
+  }
+
+  p -> update_target(ix, iy);
+  p -> _delta = p -> _target.delta(p -> start_point());
+
+  set_r(comp_r);
 
 }
 

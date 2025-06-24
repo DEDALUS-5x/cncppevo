@@ -518,6 +518,7 @@ void Block::calc_arc() {
   }
   _center.x(xc);
   _center.y(yc);
+  _center.z((zf - z0) / 2);
   _theta_0 = atan2(y0 - yc, x0 - xc);
   _dtheta = atan2(yf - yc, xf - xc) - _theta_0;
   // we need the net angle so we take the 2PI complement if negative

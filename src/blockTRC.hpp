@@ -60,6 +60,7 @@ namespace cncpp{
       bool shaping() const { return _shaping_required; }
       // void set_shaping_corner() { _shaping_corner = true; }
       bool shaping_corner() const {return _shaping_corner; }
+      void set_r(data_t t){_r = t;}
 
       /*
         ____        _     _ _                       _   _               _     
@@ -75,7 +76,7 @@ namespace cncpp{
       /**
        * 
        * @brief method that returns the required arc block to be added between the current block instance and the previous one. Advanced TRC method.
-       * It computes the vector between the previous starting point and the actual target. This vector will define the arc center position
+       * The center of the arc is defined as the nominal corner of the trajectory
        * @param nominal_start means that it requires the starting point of the current move without considering the offset due to TRC. As it is implemented, it's required to store the target point of the previous block before editing it
        * @return string corresponding to new gcode line
        * 
