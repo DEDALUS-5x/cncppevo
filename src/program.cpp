@@ -67,42 +67,36 @@ void Program::load(const string &f, bool append){
     *this << line;
     back() -> desc();
 
-    Point start;
+    Point nominal_start;
 
     if(back() -> prev){
 
-      BlockTRC* second_to_last = dynamic_cast<BlockTRC*>(back() -> prev);
-      start = second_to_last -> start_point();
+      BlockTRC* last = dynamic_cast<BlockTRC*>(back());
+      nominal_start = last -> start_point();
+      
+      if(last -> trc()){
 
-      if(second_to_last -> trc()){
+        last -> shift_prev_target();
 
-        back() -> shift_prev_target();
-
-        if(second_to_last-> prev && second_to_last -> shaping()){
+        if(last-> prev && dynamic_cast<BlockTRC*>(last -> prev) -> trc() && last -> shaping()){
           
           list<BlockTRC*>::iterator iter = end();
           --iter;
-          --iter;
 
-          string arc = second_to_last -> arc_shaping(start);
+          string arc = last -> arc_shaping(nominal_start);
           cerr << arc << endl;
           
-          BlockTRC *prpr_tmp = dynamic_cast<BlockTRC*>(second_to_last -> prev);
+          BlockTRC *second_to_last = dynamic_cast<BlockTRC*>(last -> prev);
 
-          BlockTRC *corner = new BlockTRC(arc, prpr_tmp);
+          BlockTRC *corner = new BlockTRC(arc, second_to_last);
 
-          // corner -> set_shaping_corner();
-
-          // draft idea:
-          // the new arc must be added between the third to last and the second to last block. This is because if it's added between second to last and the last, the target move of the last block is not eventually shifted yet. That means that the narrower frozen position are located from second to last to behind
-          second_to_last -> prev = corner;
-          corner -> next = second_to_last;
-          prpr_tmp -> next = corner;
+          last -> prev = corner;
+          corner -> next = last;
+          second_to_last -> next = corner;
 
 
           this -> insert(iter, corner);
           corner -> parse(_machine);
-          // *this << back() -> arc_shaping();
         }
       }
     }

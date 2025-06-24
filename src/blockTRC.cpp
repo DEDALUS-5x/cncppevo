@@ -332,21 +332,18 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
 
 string BlockTRC::arc_shaping(Point nominal_start) {
 
-  data_t r = _machine->machine_tool_radius();
+  data_t r = _machine -> machine_tool_radius();
 
   _shaping_required = false;
 
-  const Point p0 = prev -> prev -> target();
-  const Point p1 = prev -> target();
-  const Point pm = prev -> prev -> start_point();
+  const Point p0 = prev -> target();
+  const Point p1 = target();
+  const Point pm = prev -> start_point();
 
-  cerr << "\t \t arc shaping betwee: " << endl;
-  cerr << "\t \t \t" << p0.desc() << endl;
-  cerr << "\t \t \t" << p1.desc() << endl;
-  cerr << "\t \t \t" << pm.desc() << endl;
+  Point arc_center = nominal_start;
 
-  // shift current starting point
   Point tmp = p1.delta(nominal_start);
+  cerr << "delta: " << tmp.desc() << endl;
   tmp.scale(1/tmp.length());
   Point normal_tmp(-tmp.y(), tmp.x(), tmp.z());
   if (dynamic_cast<BlockTRC*>(prev) -> _trc_type == TRCType::RIGHT)
@@ -354,24 +351,12 @@ string BlockTRC::arc_shaping(Point nominal_start) {
 
   normal_tmp.scale(r);
   nominal_start = nominal_start + normal_tmp;
-
-  cerr << nominal_start.desc();
+  cerr << "\t \t new nominal start: " << nominal_start.desc() << endl;
 
   Point v1 = p0.delta(pm);
   Point v2 = p1.delta(nominal_start);
   v1.scale(1 / v1.length());
   v2.scale(1 / v2.length());
-
-  // bisector = vector that connectes the prev starting point and the actual target. Thanks to that it's possible to find the center of the junction arc
-  Point bisector = v1 + v2;
-  bisector.scale(1 / bisector.length());
-
-  Point normal(-bisector.y(), bisector.x(), bisector.z());
-  if (dynamic_cast<BlockTRC*>(prev) -> _trc_type == TRCType::RIGHT)
-    normal.scale(-1);
-
-  normal.scale(r);
-  Point arc_center = p0 + normal;
 
   data_t i = arc_center.x() - p0.x();
   data_t j = arc_center.y() - p0.y();
