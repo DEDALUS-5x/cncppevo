@@ -230,17 +230,20 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
         data_t offset_value2 = offset_side * r * sqrt(1 + pow(a2, 2));
         b2 += offset_value2;
 
-        xd = -offset_side * r + sp.x();
+        xd = offset_side * r + sp.x();
         yd = a2 * xd + b2;
 
       } else if(v2.x() == 0){
 
         data_t a1 = v1.y() / v1.x();
         data_t b1 = tp.y() - a1 * tp.x();
-        data_t offset_value1 = -offset_side * r * sqrt(1 + pow(a1, 2));
+
+        data_t offset_value1 = offset_side * r * sqrt(1 + pow(a1, 2));
+        offset_value1 = (sp.x() > sc.x()) ? -offset_value1 : offset_value1;
+        
         b1 += offset_value1;
 
-        xd = - offset_side * r + sc.x();
+        xd = -offset_side * r + sc.x();
         yd = a1 * xd + b1;
       
       }  
@@ -251,6 +254,8 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
       data_t a2 = v2.y() / v2.x();
       data_t b1 = tp.y() - a1 * tp.x();
       data_t b2 = tc.y() - a2 * tc.x();
+
+      offset_side = (a1 <=  0) ? -offset_side : offset_side;
 
       data_t offset_value1 = offset_side * r * sqrt(1 + pow(a1, 2));
       data_t offset_value2 = offset_side * r * sqrt(1 + pow(a2, 2));
@@ -327,7 +332,7 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
   cerr << style::italic << p -> desc() << style::reset << endl;
 
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
-  side = (p -> type() == BlockType::CCWA) ? 1 : -1;
+  side = (p -> type() == BlockType::CCWA) ? side : -side;
 
   data_t comp_r = _r - side * r;                 // compensated radius
 
@@ -336,6 +341,7 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
   data_t iy;
 
   // line equation y = mx + c only if the line is not vertical
+  cerr << tp.x() << "\t " << sp.x() << endl;
   if(tp.x() + r - sp.x() != 0){
 
     data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
@@ -361,7 +367,7 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
 
   } else{
 
-    ix = sp.x();
+    ix = tp.x() + r;
 
     data_t delta = sqrt(pow(comp_r, 2) - pow((ix - _center.x()), 2));
     iy = _center.y();
@@ -423,7 +429,7 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
   cerr << "delta: " << delta << endl;
   cerr << "m:" << m << " h:" << h << " cy:" << cy << " cx:" << cx << " a:" << a << " b:" << b << " c:" << c << endl;
 
-  if(delta > 0){
+  if(delta >= 0){
 
     delta = sqrt(delta);
 
@@ -435,6 +441,7 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
     iy = m * ix + h;   
 
     cerr << "ix: " << ix << ";   iy: " << iy << endl;
+  
   }
 
   p -> update_target(ix, iy);
@@ -446,40 +453,60 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
 
 void BlockTRC::arc_arc_shift(BlockTRC *p){
 
+  data_t r = _machine -> machine_tool_radius(); 
+
+  cerr << style::italic << "Starting TRC arc-arc between: " << endl << style::reset << this -> desc() << endl;
+  cerr << style::italic << "And previous move: " << style::reset << endl;
+  cerr << style::italic << p -> desc() << style::reset << endl;
+
+  Point i = circle_circle_intersection(p -> _center, p -> _r, _center, _r, p -> target());
+
+/*
   data_t dx = _center.x() - (p -> _center).x();
   data_t dy = _center.y() - (p -> _center).y();
 
   data_t dist = sqrt(pow(dx, 2) + pow(dy, 2));
 
-  data_t r = _machine -> machine_tool_radius();
+  data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
+  side = (p -> type() == BlockType::CCWA) ? 1 : -1;
 
   if(trc()){
-    _r = _r + r;
+    _r = _r + side * r;
   }
 
   if (dist > p -> _r + _r || dist < fabs(p -> _r - _r) || dist == 0) {
     throw std::runtime_error("No intersection");
   }
 
-  data_t r1 = p -> _r;
-  data_t r2 = _r;
+  data_t ix, iy;
+  data_t aa = 2 * dx;
+  data_t bb = 2 * dy;
+  data_t cc = pow(p -> _r, 2) - pow(_r, 2) - pow(p -> _center.x(), 2) + pow(_center.x(), 2) - pow(p -> _center.y(), 2) + pow(_center.y(), 2);
 
-  data_t a = (r1*r1 - r2*r2 + pow(dist, 2)) / (2 * dist);
-  data_t h = sqrt(r1*r1 - a*a);
+  data_t m = aa / bb;
+  data_t h = cc / aa;
 
-  data_t px = _center.x() + a * (dx / dist);
-  data_t py = _center.y() + a * (dy / dist);
+  // paramters for intersection with circle
+  data_t cy = _center.y();
+  data_t cx = _center.x();
+  data_t b = 2 * (m * h - m * cy - cx);
+  data_t a = (pow(m, 2) + 1);
+  data_t c = pow(cy, 2) - pow(_r + r, 2) + pow(cx, 2) - 2 * h * cy + pow(h, 2);
 
-  data_t rx = -dy * (h / dist);
-  data_t ry = dx * (h / dist);
+  data_t delta = sqrt(pow(b, 2) - 4 * a * c);
+  if(delta > 0){
 
-  Point i1(px + rx, py + ry, p -> target().z());
-  Point i2(px - rx, py - ry, p -> target().z());
+    data_t tmp1 = (-b + delta) / (2 * a);
+    data_t tmp2 = (-b - delta) / (2 * a);
 
-  data_t ix = ((i1.delta(p -> target())).x() < (i2.delta(p -> target())).x()) ? i1.x() : i2.x();
-  data_t iy = ((i1.delta(p -> target())).y() < (i2.delta(p -> target())).y()) ? i1.y() : i2.y();
-
-  p -> update_target(ix, iy);
+    // find the narrower solution to tp
+    ix = ((tmp1 - p -> target().x() < tmp2 - p -> target().x())) ? tmp1 : tmp2;
+    iy = m * ix + h;    
+  }
+*/
+  cerr << "old arc target " << p -> target().desc() << endl;
+  p -> update_target(i.x(), i.y());
+  cerr << "new arc target " << p -> target().desc() << endl; 
 
   p -> _delta = (p -> _target).delta(p -> start_point());
   p -> calc_arc();    // need to update all
@@ -532,9 +559,32 @@ string BlockTRC::arc_shaping(Point nominal_start) {
   return arc_line;
 }
 
-void arc_arc_shift(BlockTRC *p){
+Point BlockTRC::circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt){
+  Point i;
 
+  data_t dx = c2.x() - c1.x();
+  data_t dy = c2.y() - c2.y();
 
+  data_t dist = sqrt(pow(dx, 2) + pow(dy, 2));
+  cerr << "\t \t \t \t \t \t " << dist << " " << r1 << " " << r2 << endl;
+
+  if (dist > r1 + r2 || dist == 0) {
+    throw std::runtime_error("Not intersection");
+  }
+
+  data_t a = (pow(r1, 2) - pow(r2, 2) + pow(dist, 2)) / (2 * dist);
+  data_t h = sqrt(pow(r1, 2) - pow(a, 2));
+
+  data_t x = c1.x() + a * dx / dist;
+  data_t y = c1.y() + a * dy / dist;
+  data_t rx = -dy * (h / dist);
+  data_t ry = dx * (h / dist);
+
+  Point i1(x + rx, y + ry, pt.z());
+  Point i2(x - dx, y - dy, pt.z());
+
+  i = (fabs(i1.delta(pt).length()) < fabs(i2.delta(pt).length())) ? i1 : i2;
+  return i;
 }
 
 

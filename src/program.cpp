@@ -69,35 +69,32 @@ void Program::load(const string &f, bool append){
 
     Point nominal_start;
 
-    if(back() -> prev){
+    if(back() -> prev && this -> size() > 1){
 
       BlockTRC* last = dynamic_cast<BlockTRC*>(back());
       nominal_start = last -> start_point();
       
-      if(last -> trc()){
+      last -> shift_prev_target();
 
-        last -> shift_prev_target();
+      if(last-> prev && dynamic_cast<BlockTRC*>(last -> prev) -> trc() && last -> shaping()){
+        
+        list<BlockTRC*>::iterator iter = end();
+        --iter;
 
-        if(last-> prev && dynamic_cast<BlockTRC*>(last -> prev) -> trc() && last -> shaping()){
-          
-          list<BlockTRC*>::iterator iter = end();
-          --iter;
+        string arc = last -> arc_shaping(nominal_start);
+        cerr << arc << endl;
+        
+        BlockTRC *second_to_last = dynamic_cast<BlockTRC*>(last -> prev);
 
-          string arc = last -> arc_shaping(nominal_start);
-          cerr << arc << endl;
-          
-          BlockTRC *second_to_last = dynamic_cast<BlockTRC*>(last -> prev);
+        BlockTRC *corner = new BlockTRC(arc, second_to_last);
 
-          BlockTRC *corner = new BlockTRC(arc, second_to_last);
-
-          last -> prev = corner;
-          corner -> next = last;
-          second_to_last -> next = corner;
+        last -> prev = corner;
+        corner -> next = last;
+        second_to_last -> next = corner;
 
 
-          this -> insert(iter, corner);
-          corner -> parse(_machine);
-        }
+        this -> insert(iter, corner);
+        corner -> parse(_machine);
       }
     }
   }
