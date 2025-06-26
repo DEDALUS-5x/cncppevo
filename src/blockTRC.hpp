@@ -97,7 +97,7 @@ namespace cncpp{
       void arc_line_shift(BlockTRC *p);
       void arc_arc_shift(BlockTRC *p);
 
-      Point circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt);
+      Point circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt, data_t side);
 
       bool is_shaping_needed();
 

@@ -81,20 +81,23 @@ void Program::load(const string &f, bool append){
         list<BlockTRC*>::iterator iter = end();
         --iter;
 
-        string arc = last -> arc_shaping(nominal_start);
-        cerr << arc << endl;
+        if(last -> prev -> type() == Block::BlockType::LINE && last -> type() == Block::BlockType::LINE){
+          string arc = last -> arc_shaping(nominal_start);
+          cerr << arc << endl;
+          
+          BlockTRC *second_to_last = dynamic_cast<BlockTRC*>(last -> prev);
+
+          BlockTRC *corner = new BlockTRC(arc, second_to_last);
+
+          last -> prev = corner;
+          corner -> next = last;
+          second_to_last -> next = corner;
+
+
+          this -> insert(iter, corner);
+          corner -> parse(_machine);
+        }
         
-        BlockTRC *second_to_last = dynamic_cast<BlockTRC*>(last -> prev);
-
-        BlockTRC *corner = new BlockTRC(arc, second_to_last);
-
-        last -> prev = corner;
-        corner -> next = last;
-        second_to_last -> next = corner;
-
-
-        this -> insert(iter, corner);
-        corner -> parse(_machine);
       }
     }
   }

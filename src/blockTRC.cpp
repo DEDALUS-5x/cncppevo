@@ -173,6 +173,7 @@ void BlockTRC::shift_prev_target(){
     
     } else if ((p -> type() == BlockType::CWA || p -> type() == BlockType::CCWA ) && type() == BlockType::LINE){
 
+      cerr << "\n\n cehck entering arc_line" << endl;
       arc_line_shift(p);
 
     } else if ((p -> type() == BlockType::CWA || p -> type() == BlockType::CCWA ) && (type() == BlockType::CWA || type() == BlockType::CCWA )){
@@ -228,9 +229,10 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
         data_t a2 = v2.y() / v2.x();
         data_t b2 = tc.y() - a2 * tc.x();
         data_t offset_value2 = offset_side * r * sqrt(1 + pow(a2, 2));
+        offset_value2 = (tc.x() > tp.x()) ? -offset_value2 : offset_value2;
         b2 += offset_value2;
 
-        xd = offset_side * r + sp.x();
+        xd = -offset_side * r + sp.x();
         yd = a2 * xd + b2;
 
       } else if(v2.x() == 0){
@@ -249,13 +251,13 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
       }  
     
     } else{
-      
+
       data_t a1 = v1.y() / v1.x();
       data_t a2 = v2.y() / v2.x();
       data_t b1 = tp.y() - a1 * tp.x();
       data_t b2 = tc.y() - a2 * tc.x();
 
-      offset_side = (a1 <=  0) ? -offset_side : offset_side;
+      offset_side = (a1 < 0) ? -offset_side : offset_side;
 
       data_t offset_value1 = offset_side * r * sqrt(1 + pow(a1, 2));
       data_t offset_value2 = offset_side * r * sqrt(1 + pow(a2, 2));
@@ -287,7 +289,6 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
     cerr << style::italic << "New target from TRC while angle < PI: " << endl <<  p -> desc() << style::reset << endl << endl;
 
   } else{
-
 
     Point vec = tp.delta(sp);
     vec.scale(1 / vec.length());
@@ -325,23 +326,49 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
   Point tp = p -> target();
   data_t r = _machine -> machine_tool_radius(); 
 
-  // TODO : when angle > pi, then offset it's enough, no intersections because there is arc_shaping
-
   cerr << style::italic << "Starting TRC line-arc between: " << endl << style::reset << this -> desc() << endl;
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
 
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
-  side = (p -> type() == BlockType::CCWA) ? side : -side;
+  side = (type() == BlockType::CCWA) ? side : -side;
 
-  data_t comp_r = _r - side * r;                 // compensated radius
+  data_t comp_r = _r + side * r;                 // compensated radius
 
   // intersection coordinates declaration
   data_t ix;
   data_t iy;
 
+  Point vec = tp.delta(sp);
+  Point normal(-vec.y(), vec.x(), vec.z());
+  normal.scale(1 / vec.length());
+  normal.scale(side * r);
+
+  if(tp.x() + r - sp.x() != 0){
+
+    data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
+    data_t h = sp.y() - (m * sp.x());
+
+    data_t alpha = asin(r / comp_r);
+    data_t rel_scaling = comp_r * cos(alpha) - comp_r;
+    vec.scale(1 / vec.length());
+    vec.scale(rel_scaling);
+    
+    ix = tp.x() - side * vec.x();
+    iy = tp.y() - side * vec.y();
+
+  } else{
+
+    ix = tp.x() + side * r;
+
+    data_t delta = sqrt(pow(comp_r, 2) - pow((ix - _center.x()), 2));
+    iy = _center.y();
+
+    iy = (iy + delta < tp.y()) ? iy - delta : iy + delta;
+  }
+
   // line equation y = mx + c only if the line is not vertical
-  cerr << tp.x() << "\t " << sp.x() << endl;
+  /*
   if(tp.x() + r - sp.x() != 0){
 
     data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
@@ -361,93 +388,140 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
       data_t tmp2 = (-b - delta) / (2 * a);
 
       // find the narrower solution to tp
-      ix = ((tmp1 - tp.x() < tmp2 - tp.x())) ? tmp1 : tmp2;
+      ix = ((tmp1 - tp.x() > tmp2 - tp.x())) ? tmp1 : tmp2;
       iy = m * ix + h;    
     }
 
   } else{
 
-    ix = tp.x() + r;
+    ix = tp.x() + side * r;
 
     data_t delta = sqrt(pow(comp_r, 2) - pow((ix - _center.x()), 2));
     iy = _center.y();
 
-    iy = (iy + delta > tp.y()) ? iy - delta : iy + delta;
-  }
+    iy = (iy + delta < tp.y()) ? iy - delta : iy + delta;
+  }*/
 
   p -> update_target(ix, iy);
-  p -> _delta = p -> _target.delta(p -> start_point());
-  _delta = (_target).delta( start_point());
+  // p -> _delta = p -> _target.delta(p -> start_point());
+  // _delta = (_target).delta( start_point());
   set_r(comp_r);
 
-  calc_arc();    // need to update all
+  // calc_arc();    // need to update all
 }
 
 void BlockTRC::arc_line_shift(BlockTRC *p){
 
   data_t r = _machine -> machine_tool_radius(); 
-
   Point tp = target();
-  cerr << tp.desc() << " and sp: " << start_point().desc() << endl;
+
+  data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
+  side = (p -> type() == BlockType::CCWA) ? side : -side;
+
+  data_t comp_r = p -> _r + side * r;
+  p -> set_r(comp_r);
+
   Point vec = tp.delta(start_point());
   vec.scale(1 / vec.length());
-
   Point normal(-vec.y(), vec.x(), vec.z());
-  if (dynamic_cast<BlockTRC*>(prev) -> _trc_type == TRCType::RIGHT)
-    normal.scale(-1);
+  normal.scale(side * r);
 
-  normal.scale(r);
+  // Point normal(-vec.y(), vec.x(), vec.z());
+  // if (dynamic_cast<BlockTRC*>(prev) -> _trc_type == TRCType::RIGHT)
+  //   normal.scale(-1);
 
+  // normal.scale(r);
+
+  Point sp = start_point();
+  //Point sp = start_point() + normal;
   // the starting point of the current line must be offset for TRC. The target is not important because the intersection point with the circle is the same
 
-  Point sp = start_point() + normal;
-  tp = tp + normal;
+  // cerr << "starting point starting point : " << sp.desc() << endl;
 
   cerr << style::italic << "Starting TRC arc-line between: " << endl << style::reset << this -> desc();
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
 
-  data_t rad = p -> _r;
+  // data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
+  // side = (p -> type() == BlockType::CCWA) ? side : -side;
 
-  // line equation y = mx + c
-  cerr << "tp: " << tp.desc() << " sp: " << sp.desc() << endl;
-  data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
-  data_t h = sp.y() - (m * sp.x());
+  // data_t rad = p -> _r + side * r; // - side * r;
+  // calc_arc();
 
-  // paramters for intersection with circle
-  data_t cy = (p -> _center).y();
-  data_t cx = (p -> _center).x();
-  data_t b = 2 * (m * h - m * cy - cx);
-  data_t a = (pow(m, 2) + 1);
-  data_t c = pow(cy, 2) - pow(rad, 2) + pow(cx, 2) - 2 * h * cy + pow(h, 2);
 
   // intersection coordinates declaration
   data_t ix;
   data_t iy;
 
-  data_t delta = pow(b, 2) - 4 * a * c;
-  cerr << "delta: " << delta << endl;
-  cerr << "m:" << m << " h:" << h << " cy:" << cy << " cx:" << cx << " a:" << a << " b:" << b << " c:" << c << endl;
+  // do only if the line is not vertical
+  if(tp.x() - sp.x() != 0){
 
-  if(delta >= 0){
+    data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
+    data_t h = sp.y() - (m * sp.x());
 
-    delta = sqrt(delta);
+    data_t alpha = asin(r / comp_r);
+    data_t rel_scaling = comp_r * cos(alpha) - comp_r;
+    vec.scale(rel_scaling);
 
-    data_t tmp1 = (-b + delta) / (2 * a);
-    data_t tmp2 = (-b - delta) / (2 * a);
+    sp = sp - normal;
 
-    // find the narrower solution to tp
-    ix = (fabs(tmp1 - tp.x()) < fabs(tmp2 - tp.x())) ? tmp1 : tmp2;
-    iy = m * ix + h;   
+    ix = sp.x() - side * vec.x();
+    iy = sp.y() - side * vec.y();
+    /*
+    data_t m = (tp.y() - sp.y()) / (tp.x() - sp.x());
+    data_t h = sp.y() - (m * sp.x());
 
-    cerr << "ix: " << ix << ";   iy: " << iy << endl;
-  
+    // paramters for intersection with circle
+    data_t cy = (p -> _center).y();
+    data_t cx = (p -> _center).x();
+    data_t b = 2 * (m * h - m * cy - cx);
+    data_t a = (pow(m, 2) + 1);
+    data_t c = pow(cy, 2) - pow(rad, 2) + pow(cx, 2) - 2 * h * cy + pow(h, 2);
+
+    data_t delta = pow(b, 2) - 4 * a * c;
+    cerr << "delta: " << delta << endl;
+    cerr << "m:" << m << " h:" << h << " cy:" << cy << " cx:" << cx << " a:" << a << " b:" << b << " c:" << c << endl;
+
+    if(delta >= 0){
+
+      delta = sqrt(delta);
+
+      data_t tmp1 = (-b + delta) / (2 * a);
+      data_t tmp2 = (-b - delta) / (2 * a);
+
+      Point i1(tmp1, m * tmp1 + h, tp.z());
+      Point i2(tmp2, m * tmp2 + h, tp.z());
+
+      Point i = (fabs(tp.delta(i1).length()) > fabs(tp.delta(i2).length())) ? i1 : i2;
+    
+
+      // find the narrower solution to tp
+      // ix = (fabs(tmp1 - tp.x()) > fabs(tmp2 - tp.x())) ? tmp1 : tmp2;
+      // iy = m * ix + h;   
+      ix = i.x();
+      iy = i.y();
+
+      cerr << "ix: " << ix << ";   iy: " << iy << endl;
+    
+    }
+
+
+  //ix = sp.x();
+  //iy = sp.y();
+*/
+  } else{
+
+    ix = _target.x() + side * r;
+    iy = p -> target().y() + side * r;
+
   }
-
+  
   p -> update_target(ix, iy);
 
-  p -> _delta = (p -> _target).delta(p -> start_point());
-  p -> calc_arc();    // need to update all
+  //p -> _delta = (p -> _target).delta(p -> start_point());
+  p -> set_r(comp_r);
+  //p -> calc_arc();    // need to update all
+
 }
 
 
@@ -459,57 +533,40 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
 
-  Point i = circle_circle_intersection(p -> _center, p -> _r, _center, _r, p -> target());
-
-/*
-  data_t dx = _center.x() - (p -> _center).x();
-  data_t dy = _center.y() - (p -> _center).y();
-
-  data_t dist = sqrt(pow(dx, 2) + pow(dy, 2));
-
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
-  side = (p -> type() == BlockType::CCWA) ? 1 : -1;
+  side = (p -> type() == BlockType::CCWA) ? side : -side;
 
-  if(trc()){
-    _r = _r + side * r;
-  }
+  data_t comp_r = _r + side * r;                 // compensated radius
+  data_t comp_r_p = p -> _r + side * r;
 
-  if (dist > p -> _r + _r || dist < fabs(p -> _r - _r) || dist == 0) {
-    throw std::runtime_error("No intersection");
-  }
+  Point c1 = p -> _center;
+  Point c2 = _center;
+  data_t r1 = comp_r_p;
+  data_t r2 = comp_r;
+  data_t aa = 2 * c2.x() - 2 * c1.x();
+  data_t bb = 2 * c2.y() - 2 * c1.y();
+  data_t cc = pow(r1, 2) - pow(r2, 2) + pow(c2.x(), 2) - pow(c1.x(), 2) + pow(c2.y(), 2) - pow(c1.y(), 2);
 
-  data_t ix, iy;
-  data_t aa = 2 * dx;
-  data_t bb = 2 * dy;
-  data_t cc = pow(p -> _r, 2) - pow(_r, 2) - pow(p -> _center.x(), 2) + pow(_center.x(), 2) - pow(p -> _center.y(), 2) + pow(_center.y(), 2);
+  data_t m = -aa / bb;
+  data_t h = cc / bb;
 
-  data_t m = aa / bb;
-  data_t h = cc / aa;
+  Point vec(1, m, p -> target().z());
+  vec.scale(1 / vec.length());
+  vec.scale(side * r);
 
-  // paramters for intersection with circle
-  data_t cy = _center.y();
-  data_t cx = _center.x();
-  data_t b = 2 * (m * h - m * cy - cx);
-  data_t a = (pow(m, 2) + 1);
-  data_t c = pow(cy, 2) - pow(_r + r, 2) + pow(cx, 2) - 2 * h * cy + pow(h, 2);
+  data_t ix = p -> target().x() + side * vec.x();
+  data_t iy = p -> target().y() + side * vec.y();
 
-  data_t delta = sqrt(pow(b, 2) - 4 * a * c);
-  if(delta > 0){
-
-    data_t tmp1 = (-b + delta) / (2 * a);
-    data_t tmp2 = (-b - delta) / (2 * a);
-
-    // find the narrower solution to tp
-    ix = ((tmp1 - p -> target().x() < tmp2 - p -> target().x())) ? tmp1 : tmp2;
-    iy = m * ix + h;    
-  }
-*/
   cerr << "old arc target " << p -> target().desc() << endl;
-  p -> update_target(i.x(), i.y());
+  p -> update_target(ix, iy);
   cerr << "new arc target " << p -> target().desc() << endl; 
 
-  p -> _delta = (p -> _target).delta(p -> start_point());
-  p -> calc_arc();    // need to update all
+  // p -> set_r(comp_r_p);
+  // p -> _delta = (p -> _target).delta(p -> start_point());
+  // p -> calc_arc();    // need to update all
+
+  // _delta = (_target).delta( start_point());
+  //  calc_arc();
 }
 
 
@@ -559,31 +616,48 @@ string BlockTRC::arc_shaping(Point nominal_start) {
   return arc_line;
 }
 
-Point BlockTRC::circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt){
+Point BlockTRC::circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt, data_t side){
+
+  r1 = r1 + _machine -> machine_tool_radius();
+  r2 = r2 + _machine -> machine_tool_radius();
+
+  // r2 = r2 + side * _machine -> machine_tool_radius();
+  
+  // find the line that passes through the 2 intersections between the 2 circles
+  data_t aa = 2 * c2.x() - 2 * c1.x();
+  data_t bb = 2 * c2.y() - 2 * c1.y();
+  data_t cc = pow(r1, 2) - pow(r2, 2) + pow(c2.x(), 2) - pow(c1.x(), 2) + pow(c2.y(), 2) - pow(c1.y(), 2);
+
+  data_t m = -aa / bb;
+  data_t h = cc / bb;
+
+  // paramters for intersection with circle
+  data_t b = 2 * (m * h - m * c2.y() - c2.x());
+  data_t a = (pow(m, 2) + 1);
+  data_t c = pow(c2.y(), 2) - pow(r2, 2) + pow(c2.x(), 2) - 2 * h * c2.y() + pow(h, 2);
+
+  data_t delta = pow(b, 2) - 4 * a * c;
+
   Point i;
 
-  data_t dx = c2.x() - c1.x();
-  data_t dy = c2.y() - c2.y();
+  if(delta >= 0){
 
-  data_t dist = sqrt(pow(dx, 2) + pow(dy, 2));
-  cerr << "\t \t \t \t \t \t " << dist << " " << r1 << " " << r2 << endl;
+    delta = sqrt(delta);
 
-  if (dist > r1 + r2 || dist == 0) {
-    throw std::runtime_error("Not intersection");
+    data_t tmp1 = (-b + delta) / (2 * a);
+    data_t tmp2 = (-b - delta) / (2 * a);
+
+    // find the narrower solution to tp
+    Point i1(tmp1, m * tmp1 + h - _machine -> machine_tool_radius(), pt.z());
+    Point i2(tmp2, m * tmp2 + h - _machine -> machine_tool_radius(), pt.z());
+
+    i = (fabs(i1.delta(pt).length()) < i2.delta(pt).length()) ? i1 : i2;
+    // ix = (fabs(tmp1 - pt.x()) < fabs(tmp2 - pt.x())) ? tmp1 : tmp2;
+    // iy = m * ix + h;   
+
+    // ix += _machine -> machine_tool_radius();  
   }
 
-  data_t a = (pow(r1, 2) - pow(r2, 2) + pow(dist, 2)) / (2 * dist);
-  data_t h = sqrt(pow(r1, 2) - pow(a, 2));
-
-  data_t x = c1.x() + a * dx / dist;
-  data_t y = c1.y() + a * dy / dist;
-  data_t rx = -dy * (h / dist);
-  data_t ry = dx * (h / dist);
-
-  Point i1(x + rx, y + ry, pt.z());
-  Point i2(x - dx, y - dy, pt.z());
-
-  i = (fabs(i1.delta(pt).length()) < fabs(i2.delta(pt).length())) ? i1 : i2;
   return i;
 }
 
