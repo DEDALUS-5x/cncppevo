@@ -462,11 +462,13 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
   data_t m = -aa / bb;
   data_t h = cc / bb;
 
+  // Point i = circle_circle_intersection(c1, r1, c2, r2, p -> target(), side);
   Point i = line_circle_intersection(c1, r1, m, h, p -> target());
   data_t ix = i.x();
   data_t iy = i.y();
 
   p -> update_target(ix, iy);
+  cerr << "arc arc intersection: " << i.desc() << endl;
   p -> _delta = p -> _target.delta(p -> start_point());
   set_r(r2);
   //p -> calc_arc();
@@ -478,7 +480,7 @@ Point BlockTRC::line_circle_intersection(Point cen, data_t r, data_t m, data_t h
   data_t ix, iy;
 
   data_t a = pow(m, 2) + 1;
-  data_t b = -2 * cen.x() + 2 * m * (h + cen.y());
+  data_t b = -2 * cen.x() + 2 * m * (h - cen.y());
   data_t c = pow(cen.x(), 2) + pow(h - cen.y(), 2) - pow(r, 2);
 
   data_t delta = pow(b, 2) - 4 * a * c;
@@ -554,53 +556,6 @@ string BlockTRC::arc_shaping(Point nominal_start) {
 
   return arc_line;
 }
-
-Point BlockTRC::circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt, data_t side){
-
-  // r1 = r1 + _machine -> machine_tool_radius();
-  // r2 = r2 + _machine -> machine_tool_radius();
-
-  // r2 = r2 + side * _machine -> machine_tool_radius();
-  
-  // find the line that passes through the 2 intersections between the 2 circles
-  data_t aa = 2 * c2.x() - 2 * c1.x();
-  data_t bb = 2 * c2.y() - 2 * c1.y();
-  data_t cc = pow(r1, 2) - pow(r2, 2) + pow(c2.x(), 2) - pow(c1.x(), 2) + pow(c2.y(), 2) - pow(c1.y(), 2);
-
-  data_t m = -aa / bb;
-  data_t h = cc / bb;
-
-  // paramters for intersection with circle
-  data_t b = 2 * (m * h - m * c2.y() - c2.x());
-  data_t a = (pow(m, 2) + 1);
-  data_t c = pow(c2.y(), 2) - pow(r2, 2) + pow(c2.x(), 2) - 2 * h * c2.y() + pow(h, 2);
-
-  data_t delta = pow(b, 2) - 4 * a * c;
-
-  Point i;
-
-  if(delta >= 0){
-
-    delta = sqrt(delta);
-
-    data_t tmp1 = (-b + delta) / (2 * a);
-    data_t tmp2 = (-b - delta) / (2 * a);
-
-    // find the narrower solution to tp
-    Point i1(tmp1, m * tmp1 + h - _machine -> machine_tool_radius(), pt.z());
-    Point i2(tmp2, m * tmp2 + h - _machine -> machine_tool_radius(), pt.z());
-
-    i = (fabs(i1.delta(pt).length()) < i2.delta(pt).length()) ? i1 : i2;
-    // ix = (fabs(tmp1 - pt.x()) < fabs(tmp2 - pt.x())) ? tmp1 : tmp2;
-    // iy = m * ix + h;   
-
-    // ix += _machine -> machine_tool_radius();  
-  }
-
-  return i;
-}
-
-
 
 /*
   ____       _            _                        _   _               _     
