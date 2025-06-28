@@ -346,9 +346,9 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
     cerr << "check check check check" << endl;
 
     Point vec = tp.delta(sp);
-    vec.scale(1 / length());
+    vec.scale(1 / vec.length());
     Point normal(-vec.y(), vec.x(), vec.z());
-    normal.scale(side * r);
+    normal.scale(-side * r);
 
     cerr << tp.desc() << " ";
     tp = tp + normal;
@@ -384,7 +384,6 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
 
   p -> update_target(i.x(), i.y());
   p -> _delta = p -> _target.delta(p -> start_point());
-
   set_r(_r + side * r);
 }
 
@@ -407,6 +406,7 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
     Point vec = target().delta(start_point());
     vec.scale(1 / vec.length());
     Point normal(-vec.y(), vec.x(), vec.z());
+    normal.scale(-side * r);
 
     Point sc = start_point() + normal;
     Point tc = target() + normal;
@@ -433,9 +433,9 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
   }
 
   p -> update_target(i.x(), i.y());
-  cerr << "new arc target before line: " << p -> target().desc() << endl;
+  cerr << "new arc target before line: " << p -> target().desc() << "with raidus" << p -> _r << endl;
   p -> _delta = p -> _target.delta(p -> start_point());
-  //p -> calc_arc();  
+  p -> calc_arc();  
 
 }
 
@@ -448,6 +448,7 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
 
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
   side = (p -> type() == BlockType::CCWA) ? side : -side;
+  side = (type() == BlockType::CWA) ? -side : side;
 
   data_t r = _machine -> machine_tool_radius(); 
 
@@ -471,7 +472,7 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
   cerr << "arc arc intersection: " << i.desc() << endl;
   p -> _delta = p -> _target.delta(p -> start_point());
   set_r(r2);
-  //p -> calc_arc();
+  p -> calc_arc();
 
 }
 
