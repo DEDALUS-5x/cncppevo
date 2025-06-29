@@ -135,6 +135,16 @@ namespace cncpp{
       bool _trc = false;
       bool _shaping_required = false;
 
+
+      /*
+        ____       _            _                        _   _               _     
+       |  _ \ _ __(_)_   ____ _| |_ ___   _ __ ___   ___| |_| |__   ___   __| |___ 
+       | |_) | '__| \ \ / / _` | __/ _ \ | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+       |  __/| |  | |\ V / (_| | ||  __/ | | | | | |  __/ |_| | | | (_) | (_| \__ \
+       |_|   |_|  |_| \_/ \__,_|\__\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+                                                                                   
+      */
+
       /**
        * 
        * @brief it compute the angle between the current move and the previous one. It uses the atan2 of the cross product and the dot product. The resulting angle is included in the range [-pi pi] and:
