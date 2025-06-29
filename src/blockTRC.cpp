@@ -168,12 +168,10 @@ void BlockTRC::shift_prev_target(){
 
     } else if (p -> type() == BlockType::LINE && (type() == BlockType::CWA || type() == BlockType::CCWA)) {
       
-      cerr << "check entering into line_arc" << endl;
       line_arc_shift(p);
     
     } else if ((p -> type() == BlockType::CWA || p -> type() == BlockType::CCWA ) && type() == BlockType::LINE){
 
-      cerr << "\n\n cehck entering arc_line" << endl;
       arc_line_shift(p);
 
     } else if ((p -> type() == BlockType::CWA || p -> type() == BlockType::CCWA ) && (type() == BlockType::CWA || type() == BlockType::CCWA )){
@@ -203,13 +201,13 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
   Point tc = target();                          // target point of the current block
   data_t r = _machine -> machine_tool_radius(); // current tool radius
 
+  /*/
   cerr << style::italic << "Starting TRC line-line between: " << endl << style::reset << this -> desc() << endl; 
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl << endl;
+  */
 
   if(!is_shaping_needed()){
-
-    cerr << "check not shaping" << endl;
 
     Point v1 = tp.delta(sp);
     Point v2 = tc.delta(sc);
@@ -288,7 +286,6 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
     }
     
     p -> update_target(xd, yd);
-    cerr << style::italic << "New target from TRC while angle < PI: " << endl <<  p -> desc() << style::reset << endl << endl;
 
   } else{
 
@@ -310,23 +307,21 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
     // if the junction arc is required, then just shift normally the target
     data_t xd = (p -> target() + normal).x();
     data_t yd = (p -> target() + normal).y();
-    cerr << xd << " " << yd << endl;
 
     p -> update_target(xd, yd); 
-    cerr << style::italic << "New target from TRC while angle > PI: " << endl <<  p -> desc() << style::reset << endl << endl;
  
   }
 
-  // update delta without reparsing
-  // p -> _delta = p -> _target.delta(p -> start_point());
 }
 
 
 void BlockTRC::line_arc_shift(BlockTRC *p){
-
+  
+  /*
   cerr << style::italic << "Starting TRC line-arc between: " << endl << style::reset << this -> desc() << endl;
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
+  */
 
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
   side = (type() == BlockType::CCWA) ? side : -side;
@@ -338,21 +333,14 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
   Point tp = p -> target();
   data_t r = _machine -> machine_tool_radius();
 
-  cerr << sp.x() << " " << tp.x() << endl;
-
   if(!(fabs(sp.x() - tp.x() - r) < 0.000001)){
-
-    cerr << "check check check check" << endl;
 
     Point vec = tp.delta(sp);
     vec.scale(1 / vec.length());
     Point normal(-vec.y(), vec.x(), vec.z());
     normal.scale(-side * r);
 
-    cerr << tp.desc() << " ";
     tp = tp + normal;
-    cerr << tp.desc() << endl;
-  
 
     if(!(dynamic_cast<BlockTRC*>(p -> prev) -> trc()))
       sp = sp + normal;
@@ -363,8 +351,6 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
     i = line_circle_intersection(_center, _r + side * r, m, h, tp);
 
   } else{ // vertical line
-
-  cerr << "check check" << endl;
 
     data_t ix = sp.x();
 
@@ -381,22 +367,18 @@ void BlockTRC::line_arc_shift(BlockTRC *p){
     i = (fabs(i1.delta(tp).length()) < fabs(i2.delta(tp).length())) ? i1 : i2;
   }
 
-  cerr << "previous target: " << p -> target().desc();
   p -> update_target(i.x(), i.y());
-  cerr << "upadted target: " << p -> target().desc();
-  cerr << angle_with_prev() << "<<<<<<<<<<<<<<<<<" << endl;
-  if(shaping()){
-    cerr << ">>>>>>>>>>>>>><<<<" << endl;
-  }
   p -> _delta = p -> _target.delta(p -> start_point());
   set_r(_r + side * r);
 }
 
 void BlockTRC::arc_line_shift(BlockTRC *p){
 
+  /*
   cerr << style::italic << "Starting TRC arc-line between: " << endl << style::reset << this -> desc();
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
+  */
 
   data_t r = _machine -> machine_tool_radius(); 
   Point tp = p -> target();
@@ -441,9 +423,7 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
 
   } else{
 
-    cerr << "\t\t\t previous target" << tp.desc() << " previous start point" << p -> start_point().desc() << endl;  
     Point vec = tp.delta(p -> start_point());
-    cerr << "vec" << vec.desc() << endl;
     vec.scale(1 / vec.length());
     vec.scale(side * r);
     
@@ -451,7 +431,6 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
   }
 
   p -> update_target(i.x(), i.y());
-  cerr << "new arc target before line: " << p -> target().desc() << "with raidus" << p -> _r << endl;
   p -> _delta = p -> _target.delta(p -> start_point());
   
   if(!shaping())
@@ -462,9 +441,11 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
 
 void BlockTRC::arc_arc_shift(BlockTRC *p){
 
+  /*
   cerr << style::italic << "Starting TRC arc-arc between: " << endl << style::reset << this -> desc() << endl;
   cerr << style::italic << "And previous move: " << style::reset << endl;
   cerr << style::italic << p -> desc() << style::reset << endl;
+  */
 
   data_t side = (p -> _trc_type == TRCType::RIGHT) ? 1 : -1;
   side = (p -> type() == BlockType::CCWA) ? side : -side;
@@ -483,13 +464,11 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
   data_t m = -aa / bb;
   data_t h = cc / bb;
 
-  // Point i = circle_circle_intersection(c1, r1, c2, r2, p -> target(), side);
   Point i = line_circle_intersection(c1, r1, m, h, p -> target());
   data_t ix = i.x();
   data_t iy = i.y();
 
   p -> update_target(ix, iy);
-  cerr << "arc arc intersection: " << i.desc() << endl;
   p -> _delta = p -> _target.delta(p -> start_point());
   set_r(r2);
 
@@ -507,7 +486,7 @@ Point BlockTRC::line_circle_intersection(Point cen, data_t r, data_t m, data_t h
   data_t c = pow(cen.x(), 2) + pow(h - cen.y(), 2) - pow(r, 2);
 
   data_t delta = pow(b, 2) - 4 * a * c;
-  cerr << "m:" << m << " h:" << h << " center in:" << cen.desc() << " rad:" << r << endl;
+  // cerr << "m:" << m << " h:" << h << " center in:" << cen.desc() << " rad:" << r << endl;
 
   if(delta < 0){
 
@@ -548,8 +527,6 @@ string BlockTRC::arc_shaping(Point nominal_start) {
 
   if(prev -> type() == BlockType::CCWA || prev -> type() == BlockType::CWA){
 
-    cerr << "check check" << endl;
-
     Point vec = (prev -> target()).delta(start_point());
     vec.scale(1 / vec.length());
     Point normal(-vec.y(), vec.x(), vec.z());
@@ -565,19 +542,12 @@ string BlockTRC::arc_shaping(Point nominal_start) {
     nominal_start = nominal_start - vec;
     p1 = nominal_start - normal;
   
-  } else{
+  }
 
-    cerr << "ARC SHAPING " << endl;
-    cerr << "p0: " << p0.desc() << " p1: " << p1.desc() << " pm: " << pm.desc() << endl;
-
-    // arc_center = nominal_start;
-  }  
-
-  cerr << "ARC SHAPING " << endl;
-  cerr << "p0: " << p0.desc() << " p1: " << p1.desc() << " pm: " << pm.desc() << endl;
+  // cerr << "ARC SHAPING " << endl;
+  // cerr << "p0: " << p0.desc() << " p1: " << p1.desc() << " pm: " << pm.desc() << endl;
 
   Point tmp = p1.delta(nominal_start);
-  cerr << "delta: " << tmp.desc() << endl;
   tmp.scale(1/tmp.length());
   Point normal_tmp(-tmp.y(), tmp.x(), tmp.z());
   if (dynamic_cast<BlockTRC*>(prev) -> _trc_type == TRCType::RIGHT)
@@ -585,7 +555,6 @@ string BlockTRC::arc_shaping(Point nominal_start) {
 
   normal_tmp.scale(r);
   nominal_start = nominal_start + normal_tmp;
-  cerr << "\t \t new nominal start: " << nominal_start.desc() << endl;
 
   Point v1 = p0.delta(pm);
   Point v2 = p1.delta(nominal_start);
@@ -607,7 +576,7 @@ string BlockTRC::arc_shaping(Point nominal_start) {
     _feedrate
   );
 
-  cerr << "junction arc: " << arc_line << endl;
+  // cerr << "junction arc: " << arc_line << endl;
   return arc_line;
 }
 
@@ -672,23 +641,6 @@ bool BlockTRC::parse_token(string token){
     }
 
     break;
-
-/*
-    if(static_cast<BlockType>(stoi(arg)) <= BlockType::NO_MOTION){
-
-      _type = static_cast<BlockType>(stoi(arg));
-    
-    } else if(static_cast<TRCType>(stoi(arg)) >= TRCType::NONE && static_cast<TRCType>(stoi(arg)) <= TRCType::RIGHT){
-
-      _trc_type = static_cast<TRCType>(stoi(arg));
-    
-    } else{
-
-      throw CNCError("Unknown G type", this);
-    }
-
-    break;
-    */
 
   case 'X':
     _target.x(stod(arg));       //stod is string to double
@@ -764,8 +716,6 @@ data_t BlockTRC::angle_with_prev(){
 
   data_t cross = v1.x() * v2.y() - v1.y() * v2.x();
   data_t omega = atan2(cross, tmp1 + tmp2); 
-
-  cerr << "\t angle with prev: " << omega << endl;
 
   return omega;
 
