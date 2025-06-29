@@ -58,8 +58,6 @@ namespace cncpp{
       
       bool trc() const { return _trc; }
       bool shaping() const { return _shaping_required; }
-      // void set_shaping_corner() { _shaping_corner = true; }
-      bool shaping_corner() const {return _shaping_corner; }
       void set_r(data_t t){_r = t;}
 
       /*
@@ -92,13 +90,43 @@ namespace cncpp{
        */
       void shift_prev_target();
 
+      /**
+       * 
+       * @brief Find the intersction point between 2 consecutive lines while considering the tool radius. If the intersection requires an arc junction, the previous segment target is only shifted along its normal
+       * @param p = previous block pointer, in this case a line
+       * 
+       */
       void line_line_shift(BlockTRC *p);
+
+      /**
+       * 
+       * @brief Find the intersection point between a line and an arc while considering the tool radius. If the intersecction requirese an arc junction, the line target is only shifted along its normal
+       * @param p = previous block pointer, in this case a line
+       * 
+       */
       void line_arc_shift(BlockTRC *p);
+
+      /**
+       * 
+       * @brief Find the intersection point between an arc and a line while considering the tool radius. If the intersection requires an arc junction, the arc target is only shifted along the direction defined by its target and its center.
+       * @param p = previous block pointer, in this case an arc
+       * 
+       */
       void arc_line_shift(BlockTRC *p);
+
+      /**
+       * 
+       * @brief Find the intersection point between an arc and an arc while considering the tool radius. If the intersection requires an arc junction, the arc target is only shifted along the direction defined by its target and its center.
+       * @param p = previous block pointer, in this case an arc
+       * 
+       */
       void arc_arc_shift(BlockTRC *p);
 
-      Point circle_circle_intersection(const Point &c1, data_t r1, const Point &c2, data_t r2, Point pt, data_t side);
-
+      /**
+       * 
+       * @brief Consider if the arc junction is required depending on angle with the previous move and type of move
+       * 
+       */
       bool is_shaping_needed();
 
     private:
@@ -106,7 +134,6 @@ namespace cncpp{
       TRCType _trc_type = TRCType::NONE;
       bool _trc = false;
       bool _shaping_required = false;
-      bool _shaping_corner = false;
 
       /**
        * 
