@@ -487,14 +487,10 @@ void BlockTRC::arc_line_shift(BlockTRC *p){
       data_t m = (tc.y() - sc.y()) / (tc.x() - sc.x());
       data_t h = sc.y() - m * sc.x();
 
-      cerr << "radius: " << p -> _r << ", center: " << p -> center().desc() << ", m:" << m << ", h: " << h << endl;
-
       i = line_circle_intersection(p -> _center, p -> _r, m, h, p -> target());
 
     } else{ //vertical line
       data_t ix = start_point().x() + side * r;
-
-      cerr << p -> start_point().desc() << endl;
 
       data_t delta = pow(p -> _r, 2) - pow(ix - p -> _center.x(), 2);
       if(delta < 0) 
@@ -575,8 +571,8 @@ void BlockTRC::arc_arc_shift(BlockTRC *p){
   p -> _delta = p -> _target.delta(p -> start_point());
   set_r(r2);
 
-  if(!((type() == BlockType::CCWA && p -> type() == BlockType::CWA) || (p -> type() == BlockType::CCWA && type() == BlockType::CWA)))
-    p -> calc_arc();
+  if(!shaping())
+    p -> BlockTRC::calc_arc();
 
 }
 
@@ -589,11 +585,8 @@ Point BlockTRC::line_circle_intersection(Point cen, data_t r, data_t m, data_t h
   data_t c = pow(cen.x(), 2) + pow(h - cen.y(), 2) - pow(r, 2);
 
   data_t delta = pow(b, 2) - 4 * a * c;
-  cerr << "m:" << m << " h:" << h << " center in:" << cen.desc() << " rad:" << r << endl;
 
   if(a == 1){
-
-    cerr << "check" << endl;
 
     ix = tp.x();
     iy = h;
@@ -601,8 +594,6 @@ Point BlockTRC::line_circle_intersection(Point cen, data_t r, data_t m, data_t h
   } else{
 
     if(delta < 0){
-
-      cerr << "a: " << a << " b: " << b << " c: " << c << "delta: " << delta << endl;
       
       throw CNCError("Non line-arc intersection", this);
     }
