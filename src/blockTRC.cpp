@@ -123,9 +123,11 @@ BlockTRC &BlockTRC::parse(const Machine *m){
 
     case TRCType::RIGHT:
 
-      _trc = true;
-
+      if(type() != BlockType::NO_MOTION && type() != BlockType::RAPID){
+        _trc = true;
       _shaping_required = is_shaping_needed(); 
+      }
+      
     
     default:
       break;
@@ -240,7 +242,7 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
         data_t b2 = tc.y() - a2 * tc.x();
         data_t offset_value2 = offset_side * r * sqrt(1 + pow(a2, 2));
         offset_value2 = (tc.x() > tp.x()) ? -offset_value2 : offset_value2;
-        b2 += offset_value2;
+        b2 += -offset_value2;
 
         xd = -offset_side * r + sp.x();
         yd = a2 * xd + b2;
