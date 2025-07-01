@@ -653,7 +653,6 @@ string BlockTRC::arc_shaping(Point nominal_start) {
   }
 
   // cerr << "ARC SHAPING " << endl;
-  // cerr << "p0: " << p0.desc() << " p1: " << p1.desc() << " pm: " << pm.desc() << endl;
 
   Point tmp = p1.delta(nominal_start);
   tmp.scale(1/tmp.length());

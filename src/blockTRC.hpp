@@ -159,8 +159,22 @@ namespace cncpp{
 
       bool parse_token(string token);
 
+      /**
+       * 
+       * @brief find the intersection between a line and a circle
+       * @param c circumference center
+       * @param r circumference radius
+       * @param m line slope
+       * @param h line y offset
+       * @param tp previous target point
+       * 
+       */
       Point line_circle_intersection(Point c, data_t r, data_t m, data_t h, Point tp);
 
+      /**
+       * 
+       * @brief calc_arc for BlockTRC class. It differs from the Block::calc_arc because it consider if the trc flag is high or not. If offset is applied to an arc, the center should be still in order to avoid numerical errors
+       */
       void calc_arc();
 
   };
