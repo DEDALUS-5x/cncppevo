@@ -76,6 +76,7 @@ BlockTRC &BlockTRC::parse(const Machine *m){
   _delta = _target.delta(start_point());
   _acc = _machine -> A();
   _length = _delta.length();
+  _nominal_start = start_point();
 
   switch(_type){
 
@@ -221,7 +222,7 @@ void BlockTRC::line_line_shift(BlockTRC *prev){
 
   if(!is_shaping_needed()){
 
-    Point v1 = tp.delta(sp);
+    Point v1 = tp.delta(p -> start_point());
     Point v2 = tc.delta(sc);
     v1.scale(1 / v1.length());
     v2.scale(1 / v2.length());
