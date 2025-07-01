@@ -45,7 +45,7 @@ namespace cncpp{
       BlockTRC(string line, BlockTRC *prev);
       ~BlockTRC();
 
-      BlockTRC &parse(const Machine *m);
+      BlockTRC &parse(Machine *m);
 
       /*
            _                                        

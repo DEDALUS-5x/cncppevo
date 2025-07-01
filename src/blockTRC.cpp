@@ -47,8 +47,7 @@ BlockTRC &BlockTRC::operator=(BlockTRC &b){
   return *this;
 }
 
-BlockTRC &BlockTRC::parse(const Machine *m){
-  _machine = m;
+BlockTRC &BlockTRC::parse(Machine *m){
 
   stringstream ss(_line);
   string token;
@@ -71,7 +70,9 @@ BlockTRC &BlockTRC::parse(const Machine *m){
       throw CNCError(ss.str(), this);
     }
   }
-
+  
+  m -> selected_tool(_tool);
+  _machine = m;
   _target.modal(start_point());
   _delta = _target.delta(start_point());
   _acc = _machine -> A();

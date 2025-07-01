@@ -65,6 +65,19 @@ namespace cncpp{
 
   }
 
+  void Machine::selected_tool(size_t t){
+
+    if(t > 0 && t <= 4){
+
+      t--;
+      _selected_tool = t;
+    } else{
+
+      throw CNCError("Required tool is not available", this);
+    }
+  }
+
+
   string Machine::desc(bool colored) const{
 
     stringstream ss;

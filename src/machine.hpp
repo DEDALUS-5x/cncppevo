@@ -111,6 +111,7 @@ namespace cncpp{
         return _setpoint;
       }
       data_t machine_tool_radius() const { return _tools[_selected_tool]; }
+      void selected_tool(size_t t);
 
 
       string mqtt_host() const { return "mqtt://" + _mqtt_host + ":" + to_string(_mqtt_port); }
