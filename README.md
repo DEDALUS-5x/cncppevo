@@ -1,6 +1,8 @@
 # CNCPP 2025
 
-This is the repository of the code developed during the _Digital Manufacturing_ course, academic year 2022-23, Department of Industrial Engineering, University of Trento.
+This is the repository of the code developed during the _Digital Manufacturing_ course, academic year 2024-25, Department of Industrial Engineering, University of Trento.
+Currently, the repo deals the developing of a CNC kernel controller and new features are added as:
+* Tool Radius Compensation;
 
 
 ## Contents
