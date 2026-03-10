@@ -21,13 +21,15 @@ namespace cncpp{
 class Point : Object{
   public:
 
-    Point(opt_data_t x = nullopt, opt_data_t y = nullopt, opt_data_t z = nullopt);
+    Point(opt_data_t x = nullopt, opt_data_t y = nullopt, opt_data_t z = nullopt, opt_data_t a = nullopt, opt_data_t c = nullopt);
 
     Point& operator=(const Point& other){
       if(this != &other){
         _x = other._x;
         _y = other._y;
         _z = other._z;
+        _a = other._a;
+        _c = other._c;
       }
 
       return *this;
@@ -83,7 +85,7 @@ class Point : Object{
      */
     bool is_complete() const{
 
-      return _x.has_value() && _y.has_value() && _z.has_value();
+      return _x.has_value() && _y.has_value() && _z.has_value() && _a.has_value() && _c.has_value();
     }
 
     
@@ -101,6 +103,8 @@ class Point : Object{
     data_t x() const{ return _x.value(); }
     data_t y() const{ return _y.value(); }
     data_t z() const{ return _z.value(); }
+    data_t a() const{ return _a.value(); }
+    data_t c() const{ return _c.value(); }
 
     data_t x(data_t v){ 
       return (_x = v).value();
@@ -112,11 +116,20 @@ class Point : Object{
       return (_z = v).value();
     }
 
+    data_t a(data_t v){
+      return (_a = v).value();
+    }
+    data_t c(data_t v){
+      return (_c = v).value();
+    }
+
   private:
 
     opt_data_t _x = nullopt;                  // convention -> class attributes have the _
     opt_data_t _y = nullopt;
     opt_data_t _z = nullopt;
+    opt_data_t _a = nullopt;
+    opt_data_t _c = nullopt;
 
 }; // class Point
 

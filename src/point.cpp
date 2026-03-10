@@ -25,7 +25,7 @@ using namespace fmt;
 using col_t = optional<color>;
 static string coord_str(opt_data_t const &coord, col_t const &color = nullopt);
 
-Point::Point(opt_data_t x, opt_data_t y, opt_data_t z) : _x(x), _y(y), _z(z) {}
+Point::Point(opt_data_t x, opt_data_t y, opt_data_t z, opt_data_t a, opt_data_t c) : _x(x), _y(y), _z(z), _a(a), _c(c) {}
 
 
 void Point::reset(){
@@ -33,6 +33,8 @@ void Point::reset(){
   _x.reset();
   _y.reset();
   _z.reset();
+  _a.reset();
+  _c.reset();
 
 }
 
@@ -64,6 +66,12 @@ void Point::modal(const Point &p){
 
   if (!this->_z && p._z)
     this->_z = p._z;
+
+  if(!this -> _a && p._a)
+    this -> _a = p._a;
+
+  if(!this -> _c && p._c)
+    this -> _c = p._c;
 }
 
 
@@ -76,8 +84,9 @@ Point Point::operator+(const Point &other) const{
 
     _x.value() + other._x.value(),
     _y.value() + other._y.value(),
-    _z.value() + other._z.value()
-
+    _z.value() + other._z.value(),
+    _a.value() + other._a.value(),
+    _c.value() + other._c.value()
   );
 
   return out;
@@ -92,7 +101,9 @@ Point Point::operator-(const Point &other) const{
 
     _x.value() - other._x.value(),
     _y.value() - other._y.value(),
-    _z.value() - other._z.value()
+    _z.value() - other._z.value(),
+    _a.value() - other._a.value(),
+    _c.value() - other._c.value()
 
   );
 
@@ -110,7 +121,9 @@ Point Point::delta(const Point &other) const {
 
     _x.value() - other._x.value(),
     _y.value() - other._y.value(),
-    _z.value() - other._z.value()
+    _z.value() - other._z.value(),
+    _a.value() - other._a.value(),
+    _c.value() - other._c.value()
 
   );
 
@@ -177,7 +190,7 @@ vector<data_t> Point::vec() const{
   if(!is_complete())
     throw CNCError("Point is not complete", this);
   
-  return vector<data_t>{_x.value(), _y.value(), _z.value()};
+  return vector<data_t>{_x.value(), _y.value(), _z.value(), _a.value(), _c.value()};
 } 
 
 

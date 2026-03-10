@@ -100,8 +100,8 @@ Block::Block(string line, Block &p) : Block(line) {
   _parsed = false;
   _m = 0;
 
-  _pitch = _prev -> pitch();
-  _yaw = _prev -> yaw();
+  // _pitch = _prev -> pitch();
+  // _yaw = _prev -> yaw();
 }
 
 Block::Block(string line, Block *b) : Block(line){
@@ -121,8 +121,8 @@ Block::Block(string line, Block *b) : Block(line){
   _parsed = false;
   _m = 0;
 
-  _pitch = _prev -> pitch();
-  _yaw = _prev -> yaw();
+  // _pitch = _prev -> pitch();
+  // _yaw = _prev -> yaw();
 }
 
 
@@ -286,7 +286,6 @@ Point Block::interpolate(data_t lambda){
   // z is good for both cases
   result.z(p0.z() + _delta.z() * lambda);
   return result;
-
 }
 
 Point Block::interpolate(data_t time, data_t &lambda, data_t &speed){
@@ -365,11 +364,11 @@ bool Block::parse_token(string token){
     break;
 
   case 'A':
-    _pitch = stod(arg);
+    _target.a(stod(arg));
     break;
   
   case 'B':
-    _yaw = stod(arg);
+    _target.c(stod(arg));
     break;
 
   case 'I':
