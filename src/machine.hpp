@@ -93,6 +93,7 @@ namespace cncpp{
       */
      
       data_t A() const { return _A;}
+      data_t A_stepper() const { return _A_stepper; }
       Point zero() const { return _zero;}
       Point offset() const{ return _offset;}
       data_t tq() const { return _tq;}
@@ -172,6 +173,7 @@ namespace cncpp{
 
       string _settings_file = "";
       data_t _A = 5.0;
+      data_t _A_stepper = 0.5;
       Point _zero = Point(0, 0, 0);
       Point _offset = Point(0, 0, 0);
       Point _setpoint, _position;         // setpoint is the point given to the machine

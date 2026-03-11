@@ -226,6 +226,19 @@ Block &Block::parse(const Machine *m){
 
   switch(_type){
 
+    case BlockType::RAPID:{
+      if(_delta.z() != 0 || _delta.a() != 0 || _delta.c() != 0){
+        _acc = _machine -> A_stepper(); // lower acceleration for positioning axes
+      }
+
+      data_t max_angle = max(fabs(_delta.a()), fabs(_delta.c()));
+      if(max_angle > 0){
+
+        _length = max_angle;   // if the movement is 0, let's use _lenght as a measure of positioning rotation
+      }
+      break;
+    }
+
     case BlockType::LINE:
       _acc = _machine -> A();
       _arc_feedrate = _feedrate;
@@ -367,7 +380,7 @@ bool Block::parse_token(string token){
     _target.a(stod(arg));
     break;
   
-  case 'B':
+  case 'C':
     _target.c(stod(arg));
     break;
 
