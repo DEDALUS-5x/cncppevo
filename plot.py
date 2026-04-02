@@ -37,7 +37,9 @@ def plot_cnc_analysis(file_path):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
     # --- PLOT 1: FEEDRATE ---
-    ax1.plot(df['t_tot'], df['feedrate'], label='Feedrate (mm/s)', color='#1f77b4', linewidth=1.5)
+    # ax1.plot(df['t_tot'], df['feedrate'], label='Feedrate (mm/s)', color='#1f77b4', linewidth=1.5)
+    ax1.plot(df['t_tot'], df['feedrate'], label='Feedrate (mm/s)', 
+         color='#1f77b4', linewidth=1.5, marker='o', markersize=4)
     ax1.set_title('Profilo di Velocità (Feedrate)')
     ax1.set_xlabel('Tempo (s)')
     ax1.set_ylabel('Velocità (mm/s)')
@@ -46,7 +48,9 @@ def plot_cnc_analysis(file_path):
 
     # --- PLOT 2: TRAIETTORIA XY ---
     # Plotting continuo: non saltando le righe senza 'n', gli archi vengono disegnati bene
-    ax2.plot(df['X'], df['Y'], label='Percorso Ugello', color='green', linewidth=1.2)
+    # ax2.plot(df['X'], df['Y'], label='Percorso Ugello', color='green', linewidth=1.2)
+    ax2.plot(df['X'], df['Y'], label='Percorso Ugello', 
+         color='green', linewidth=1.2, marker='.', markersize=3)
     ax2.set_title('Traiettoria XY (Archi corretti)')
     ax2.set_xlabel('X (mm)')
     ax2.set_ylabel('Y (mm)')
