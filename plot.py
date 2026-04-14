@@ -3,10 +3,7 @@ import matplotlib.pyplot as plt
 
 def plot_cnc_analysis(file_path):
     try:
-        # Caricamento robusto:
-        # 1. 'sep=None' con 'engine=python' rileva automaticamente se usi virgole o spazi.
-        # 2. 'on_bad_lines=skip' evita il crash se ci sono righe di testo/commenti a metà file.
-        # 3. 'skip_blank_lines=True' ignora le righe vuote.
+        # Caricamento robusto
         df = pd.read_csv(
             file_path, 
             sep=None, 
@@ -15,31 +12,26 @@ def plot_cnc_analysis(file_path):
             skip_blank_lines=True
         )
 
-        # Pulizia: convertiamo in numeri e scartiamo ciò che non lo è
-        # Questo risolve il problema delle righe 'n' mancanti negli archi
-        cols = ['t_tot', 'feedrate', 'X', 'Y']
+        # Aggiungiamo 'A' e 'C' alla lista delle colonne da convertire in numeri
+        cols = ['t_tot', 'feedrate', 'X', 'Y', 'A', 'C']
         for col in cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        # Eliminiamo le righe dove mancano dati fondamentali
-        df = df.dropna(subset=['X', 'Y', 't_tot'])
-
-        # ORDINE CRONOLOGICO: Fondamentale per plottare gli archi correttamente
-        # Senza questo, il feedrate e la traiettoria potrebbero fare dei salti strani
+        # Pulizia dati fondamentali per la serie temporale
+        df = df.dropna(subset=['t_tot'])
         df = df.sort_values('t_tot')
 
     except Exception as e:
         print(f"Errore caricamento: {e}")
         return
 
-    # Creazione della figura
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    # Creazione della figura con griglia 2x2 per includere gli assi A e C
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
 
     # --- PLOT 1: FEEDRATE ---
-    # ax1.plot(df['t_tot'], df['feedrate'], label='Feedrate (mm/s)', color='#1f77b4', linewidth=1.5)
     ax1.plot(df['t_tot'], df['feedrate'], label='Feedrate (mm/s)', 
-         color='#1f77b4', linewidth=1.5, marker='o', markersize=4)
+             color='#1f77b4', linewidth=1.5, marker='o', markersize=2, alpha=0.7)
     ax1.set_title('Profilo di Velocità (Feedrate)')
     ax1.set_xlabel('Tempo (s)')
     ax1.set_ylabel('Velocità (mm/s)')
@@ -47,24 +39,41 @@ def plot_cnc_analysis(file_path):
     ax1.legend()
 
     # --- PLOT 2: TRAIETTORIA XY ---
-    # Plotting continuo: non saltando le righe senza 'n', gli archi vengono disegnati bene
-    # ax2.plot(df['X'], df['Y'], label='Percorso Ugello', color='green', linewidth=1.2)
-    ax2.plot(df['X'], df['Y'], label='Percorso Ugello', 
-         color='green', linewidth=1.2, marker='.', markersize=3)
-    ax2.set_title('Traiettoria XY (Archi corretti)')
+    ax2.plot(df['X'], df['Y'], label='Percorso XY', 
+             color='green', linewidth=1.2, marker='.', markersize=2, alpha=0.5)
+    ax2.set_title('Traiettoria XY')
     ax2.set_xlabel('X (mm)')
     ax2.set_ylabel('Y (mm)')
-    ax2.axis('equal') # Mantiene le proporzioni reali del CNC
+    ax2.axis('equal') 
     ax2.grid(True, linestyle=':', alpha=0.6)
     ax2.legend()
 
+    # --- PLOT 3: ASSE A (Pitch) ---
+    if 'A' in df.columns:
+        ax3.plot(df['t_tot'], df['A'], label='Asse A (Pitch)', 
+                 color='darkorange', linewidth=1.5)
+        ax3.set_title('Serie Temporale Asse A')
+        ax3.set_xlabel('Tempo (s)')
+        ax3.set_ylabel('Angolo (deg)')
+        ax3.grid(True, linestyle=':', alpha=0.6)
+        ax3.legend()
+    else:
+        ax3.text(0.5, 0.5, 'Colonna A non trovata', ha='center')
+
+    # --- PLOT 4: ASSE C (Yaw) ---
+    if 'C' in df.columns:
+        ax4.plot(df['t_tot'], df['C'], label='Asse C (Yaw)', 
+                 color='purple', linewidth=1.5)
+        ax4.set_title('Serie Temporale Asse C')
+        ax4.set_xlabel('Tempo (s)')
+        ax4.set_ylabel('Angolo (deg)')
+        ax4.grid(True, linestyle=':', alpha=0.6)
+        ax4.legend()
+    else:
+        ax4.text(0.5, 0.5, 'Colonna C non trovata', ha='center')
+
     plt.tight_layout()
-    
-    # --- GRAFICO FLOTTANTE ---
-    # plt.show() apre la finestra interattiva sul tuo computer
-    # senza salvare file nella cartella.
     plt.show()
 
 if __name__ == "__main__":
-    # Assicurati che il nome del file sia corretto (es. 'logtrc.csv')
     plot_cnc_analysis("log.csv")
