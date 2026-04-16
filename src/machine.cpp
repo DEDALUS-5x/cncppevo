@@ -104,113 +104,24 @@ namespace cncpp{
       return q;
   }
 
-  int Machine::connect(){
-    // call the mosquittopp method
-    int rc = mosquittopp::connect(_mqtt_host.c_str(), _mqtt_port, _mqtt_keepalive);
-    if(rc != MOSQ_ERR_SUCCESS){
-      
-      throw CNCError("Cannot connect to MQTT broker ", this);
-    }
 
-    return rc;
-  }
+void Machine::listen(const json input)  {
 
-  void Machine::listen_start(){
-
-    if(subscribe(NULL, _sub_topic.c_str()) != MOSQ_ERR_SUCCESS){
-      
-      throw CNCError("Cannot subscribe to topic " + _sub_topic, this);
-    }
-  }
-
-  void Machine::listen_stop(){
-
-    if(unsubscribe(NULL, _sub_topic.c_str()) != MOSQ_ERR_SUCCESS){
-      
-      throw CNCError("Cannot unsubscribe to topic " + _sub_topic, this);
-    }
-
-  }
-
-  void Machine::on_connect(int rc){
-
-    if(_debug){
-      cerr << fg::yellow << style::italic << "Connected to broker " << mqtt_host() << fg::reset << endl;
-    }
-
-    _position.reset();
-    _error = INFINITY;
-    _connected = true;
-  }
-
-  void Machine::on_disconnect(int rc){
-
-    if(_debug){
-        cerr << fg::yellow << style::italic << "Disconnected to broker " << mqtt_host() << fg::reset << endl;
-    }
-
-    _connected = false;
-  }
-
-  void Machine::on_subscribe(int mid, int qos_count, const int *qos){
-
-    if(_debug){
-        cerr << fg::yellow << style::italic << "Subscribed to topic " << mqtt_host() << fg::reset << endl;
-    }
-
-    _position.reset();
-    _error = INFINITY;
-  }
-
-  void Machine::on_unsubscribe(int mid){
-
-    if(_debug){
-        cerr << fg::yellow << style::italic << "Unsubscribed from topic " << mqtt_host() << fg::reset << endl;
-    }
-
-    _position.reset();
-    _error = INFINITY;
-
-  }
-
-void Machine::on_message(const struct mosquitto_message *message)  {
-  string payload((char *)message->payload, message->payloadlen);
-  json j;
-
-  try {
-    j = json::parse(payload);
-
-  } catch (json::parse_error &e) {
-
-    cerr << fg::red << "Cannot parse JSON payload: " << e.what() << endl
-         << "Payload was: " << style::bold << payload
-         << style::reset << fg::reset << endl;
-
-    return;
-  }
+  json j = input;
   
   _position = Point(j.value<data_t>("x", 0)*1000, j.value<data_t>("y", 0) * 1000, j.value<data_t>("z", 0) * 1000);
   _error = j.value<data_t>("error", 0) * 1000;
 }
 
+json Machine::sync(bool rapid){ // synchronize the machine with the current values
+  Point pos = (_setpoint + _offset);
+  json j;
+  j["x"] = pos.x();
+  j["y"] = pos.y();
+  j["z"] = pos.z();
+  j["rapid"] = rapid;         // flag in order to tell if the movement is rapid or not
 
-  void Machine::sync(bool rapid){ // synchronize the machine with the current values
-    Point pos = (_setpoint + _offset);
-    json j;
-    j["x"] = pos.x();
-    j["y"] = pos.y();
-    j["z"] = pos.z();
-    j["rapid"] = rapid;         // flag in order to tell if the movement is rapid or not
-    string payload = j.dump();  // dump method convert a json structure into a string
-    int rc = publish(NULL, _pub_topic.c_str(), payload.length(), payload.c_str(), 0, false);
-    if (rc != MOSQ_ERR_SUCCESS) {
-      throw CNCError("Cannot publish to topic " + _pub_topic, this);
-    }
-    
-    loop();                     // every sync call the mqtt communication updates thanks to loop() function
-
-  }
-
+  return j;
 }
 
 

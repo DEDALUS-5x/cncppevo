@@ -117,54 +117,20 @@ namespace cncpp{
 
       string mqtt_host() const { return "mqtt://" + _mqtt_host + ":" + to_string(_mqtt_port); }
 
-      /**
-        __  __  ___ _____ _____                  _   _               _     
-       |  \/  |/ _ \_   _|_   _|  _ __ ___   ___| |_| |__   ___   __| |___ 
-       | |\/| | | | || |   | |   | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
-       | |  | | |_| || |   | |   | | | | | |  __/ |_| | | | (_) | (_| \__ \
-       |_|  |_|\__\_\|_|   |_|   |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
-                                                                           
-      */
-
-      /**
-       * 
-       * @brief it returns a MQTT-error code
-       */
-      int connect();
-
-      // if we are not in a rapid motion, we don't care about the actual position of hte machine, so we switch it off when not executing rapid motions
-
-      void listen_start();
-      void listen_stop();
-
-      // Overrides
-
-      void on_connect(int rc) override;
-      void on_disconnect(int rc) override;
-      /**
-       * 
-       * @brief The acutal qos obtained may be different from the one stored and it is the broker that send it
-       * @param mid
-       * @param qos_count quality of service counter
-       * @param qos quality of service instance pointer
-       */
-      void on_subscribe(int mid, int qos_count, const int *qos) override;
-
-      void on_unsubscribe(int mid) override;
 
       /**
        * 
        * @brief callback that run every time some value occurs from the broker in a topic
        * @param message message defined in the mqtt protocol
        */
-      void on_message(const struct mosquitto_message *message) override;
+      void listen(const json input);
 
       /**
        * 
        * @brief
        * @param rapid flag for rapid motion
        */
-      void sync(bool rapid);
+      json sync(bool rapid);
 
 
     private:  
