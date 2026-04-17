@@ -65,8 +65,17 @@ int main(int argc, char *argv[]) {
   });
   fsm.run([&](FsmData &s) {
     // here put everything that shall run at each loop iteration
-    data.agent->receive(non_blocking);
-    data.agent->remote_control(get<1>(data.agent->last_message()));
+
+    // LISTENING FROM MACHINE, TOPIC = "machine"
+    if(data.machine.listening() && data.agent -> last_topic() != "machine"){
+
+      data.agent->receive(non_blocking);
+      data.agent->remote_control(get<1>(data.agent->last_message()));
+      auto msg = data.agent -> last_message();
+      auto in = json::parse(get<1>(msg));
+      data.machine.feedback(in);
+    }
+    
   });
 
   // Shutdown procedure

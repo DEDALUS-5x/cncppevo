@@ -105,7 +105,7 @@ namespace cncpp{
   }
 
 
-void Machine::listen(const json input)  {
+void Machine::feedback(const json input)  {
 
   json j = input;
   

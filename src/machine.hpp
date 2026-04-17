@@ -116,17 +116,14 @@ namespace cncpp{
       }
       data_t machine_tool_radius() const { return _tools[_selected_tool]; }
       void selected_tool(size_t t = 1);
+      bool listening() const { return _listening; }
 
 
       string mqtt_host() const { return "mqtt://" + _mqtt_host + ":" + to_string(_mqtt_port); }
 
-
-      /**
-       * 
-       * @brief callback that run every time some value occurs from the broker in a topic
-       * @param message message defined in the mqtt protocol
-       */
-      void listen(const json input);
+      void listen_start(){ _listening = true; }
+      void listen_stop(){ _listening = false; }
+      void feedback(const json input);
 
       /**
        * 
@@ -162,6 +159,8 @@ namespace cncpp{
       string _sub_topic;                  // get current position
       char _msg_buffer[MQTT_BUFLEN];
       bool _connected = false;
+
+      bool _listening = false;
 
       Mads::Agent *_agent;
 
