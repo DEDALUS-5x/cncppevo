@@ -29,12 +29,7 @@ namespace cncpp{
 
   Machine::~Machine(){
 
-    bool res = disconnect();
-
-    if(_connected && res != MOSQ_ERR_SUCCESS){
-      cerr << fg::red << "Cannot disconnect from MQTT broker " << fg::reset << endl;
-    }
-    mosqpp::lib_cleanup();
+    cout << "Machine disconnected" << endl;
   }
 
   void Machine::load(const string &s){
@@ -56,12 +51,6 @@ namespace cncpp{
     _tools.emplace_back(machine["tools"][2].as<data_t>());
     _tools.emplace_back(machine["tools"][3].as<data_t>());
 
-    //MQTT parameters from yml file
-    _mqtt_host = machine["mqtt"]["host"].as<string>("localhost");    // inside () there is the default
-    _mqtt_port = machine["mqtt"]["port"].as<int>(1883);
-    _mqtt_keepalive = machine["mqtt"]["keepalive"].as<int>(60);
-    _pub_topic = machine["mqtt"]["topics"]["pub"].as<string>("cnc/setpoint");
-    _sub_topic = machine["mqtt"]["topics"]["sub"].as<string>("cnc/status/#");  // # is a wildcard
 
   }
 
@@ -90,7 +79,6 @@ namespace cncpp{
 
     ss << "zero = " << _zero.desc(colored) << endl;
     ss << "offset = " << _offset.desc(colored) << endl;
-    ss << "MQTT host = " << mqtt_host() << endl;
 
     return ss.str();
   }

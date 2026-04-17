@@ -15,9 +15,6 @@
 
 #include "defines.hpp"
 #include "point.hpp"
-//#include <mosquittopp.h>
-#include <mosquittopp.h>
-#include <mosquitto.h>
 #include <nlohmann/json.hpp>
 #include <vector>
 
@@ -118,9 +115,6 @@ namespace cncpp{
       void selected_tool(size_t t = 1);
       bool listening() const { return _listening; }
 
-
-      string mqtt_host() const { return "mqtt://" + _mqtt_host + ":" + to_string(_mqtt_port); }
-
       void listen_start(){ _listening = true; }
       void listen_stop(){ _listening = false; }
       void feedback(const json input);
@@ -152,12 +146,6 @@ namespace cncpp{
       vector<data_t> _tools;
       int _selected_tool = 1;
 
-      string _mqtt_host = "localhost";    // broker running on the same machine (our assumption)
-      int _mqtt_port = 1883;
-      int _mqtt_keepalive = 60;           // number of seconds to wait before assuming that the connection is dead
-      string _pub_topic;                  // publish setpoints
-      string _sub_topic;                  // get current position
-      char _msg_buffer[MQTT_BUFLEN];
       bool _connected = false;
 
       bool _listening = false;
