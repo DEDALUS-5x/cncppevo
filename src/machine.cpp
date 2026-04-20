@@ -143,6 +143,7 @@ int main(int argc, const char *argv[]) {
     return 1;
   }
 
+  /*
   cncpp::Machine machine(argv[1]);
   cout << machine.desc() << endl;
   
@@ -176,7 +177,7 @@ int main(int argc, const char *argv[]) {
   machine.listen_stop();
 
 
-
+*/
   return 0;
 }
 

@@ -25,7 +25,10 @@ struct FsmData {
   Program program;
   Machine machine;
   data_t t_tot, t_blk;
-  FSMData(string yaml_file) : machine(yaml_file, agent), program(&machine) {}
+  FsmData(string name, string settings, string yaml) 
+    : agent(std::make_unique<Mads::Agent>(name, settings)), 
+      machine(yaml, agent.get()), 
+      program(&machine) {}
 
 };
 
@@ -40,7 +43,7 @@ int main(int argc, char *argv[]) {
   if (argc > 1) {
     settings_path = argv[1];
   }
-  FsmData data = {std::make_unique<Mads::Agent>(agent_name, settings_path)};
+  FsmData data(agent_name, settings_path, "machine.yaml");
   // If crypto is needed, properly load keys and enable it
   data.agent->init(false, false);
   data.agent->connect();
@@ -59,7 +62,7 @@ int main(int argc, char *argv[]) {
   // Deal with further settings as needed
 
   // Initialize FSM
-  auto fsm = FSM::FiniteStateMachine(&data);
+  auto fsm = FiniteStateMachine(&data);
   fsm.set_timing_function([&]() {
     std::this_thread::sleep_for(loop_period);
   });
