@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <filesystem>
-#include <nlohmann/json.hpp>
+// #include <nlohmann/json.hpp>
 #include "../cncpp.hpp"
 #include "../fsm.hpp"
 #include "../timer.hpp"
@@ -70,10 +70,11 @@ int main(int argc, char *argv[]) {
     // here put everything that shall run at each loop iteration
 
     // LISTENING FROM MACHINE, TOPIC = "machine"
+    data.agent->receive(non_blocking);
+    data.agent->remote_control(get<1>(data.agent->last_message()));
+
     if(data.machine.listening() && data.agent -> last_topic() != "machine"){
 
-      data.agent->receive(non_blocking);
-      data.agent->remote_control(get<1>(data.agent->last_message()));
       auto msg = data.agent -> last_message();
       auto in = json::parse(get<1>(msg));
       data.machine.feedback(in);
