@@ -11,7 +11,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-add_definitions(-DJSON_USE_GLOBAL_UDLS=0 -DJSON_DIAGNOSTICS=0)
+# add_definitions(-DJSON_USE_GLOBAL_UDLS=0 -DJSON_DIAGNOSTICS=0)
 #   ____       _
 #  / ___|  ___| |_  __   ____ _ _ __ ___
 #  \___ \ / _ \ __| \ \ / / _` | '__/ __|
@@ -79,12 +79,12 @@ include(FetchContent)
 
 message(STATUS "Fetching dependencies...")
 
-FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        v3.12.0
-  GIT_SHALLOW    TRUE
-  EXCLUDE_FROM_ALL
-)
+# FetchContent_Declare(json
+#   GIT_REPOSITORY https://github.com/nlohmann/json.git
+#   GIT_TAG        v3.12.0
+#   GIT_SHALLOW    TRUE
+#   EXCLUDE_FROM_ALL
+# )
 
 
 FetchContent_Declare(fmt
@@ -120,14 +120,14 @@ set(WITH_STATIC_LIBRARIES ON CACHE BOOL "")
 set(WITH_TLS OFF CACHE BOOL "")
 set(WITH_LIB_CPP ON CACHE BOOL "")
 
-FetchContent_MakeAvailable(fmt rang json yaml-cpp keystroker)
+FetchContent_MakeAvailable(fmt rang yaml-cpp keystroker)
 
 message(STATUS "Dependencies fetched.")
 
 include_directories(
   ${fmt_SOURCE_DIR}/include
   ${rang_SOURCE_DIR}/include
-  ${json_SOURCE_DIR}/include
+  # ${json_SOURCE_DIR}/include
   ${yaml-cpp_SOURCE_DIR}/include
   ${keystroker_SOURCE_DIR}/include
   # /opt/homebrew/include

@@ -32,13 +32,13 @@ else()
     MadsCore 
     cncpp_lib         # <--- AGGIUNTO: collega la tua libreria core
     fmt::fmt          # <--- AGGIUNTO: risolve gli errori fmt::v11
-    nlohmann_json::nlohmann_json
+    # nlohmann_json::nlohmann_json
     yaml-cpp::yaml-cpp
     keystroker        # <--- AGGIUNTO: per risolvere 'read_key'
   )
 
   add_executable(simple simple.cpp)
-  target_link_libraries(simple PRIVATE MadsCore cncpp_lib fmt::fmt nlohmann_json::nlohmann_json yaml-cpp::yaml-cpp keystroker)
+  target_link_libraries(simple PRIVATE MadsCore cncpp_lib fmt::fmt yaml-cpp::yaml-cpp keystroker) # nlohmann_json::nlohmann_json)
 endif()
 
 #   ___           _        _ _ 
