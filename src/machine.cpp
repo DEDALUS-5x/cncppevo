@@ -103,15 +103,15 @@ void Machine::feedback(const json input)  {
 void Machine::sync(bool rapid){ // synchronize the machine with the current values
   Point pos = (_setpoint + _offset);
   json j;
-  j["x"] = pos.x();
-  j["y"] = pos.y();
-  j["z"] = pos.z();
-  j["a"] = pos.a();
-  j["c"] = pos.c();
+  j["fmu_input"]["x"] = pos.x();
+  j["fmu_input"]["y"] = pos.y();
+  j["fmu_input"]["z"] = pos.z();
+  j["fmu_input"]["a"] = pos.a();
+  j["fmu_input"]["c"] = pos.c();
 
   // output vx and vy
-  j["vx"] = _vx;
-  j["vy"] = _vy;
+  j["fmu_input"]["vx"] = _vx;
+  j["fmu_input"]["vy"] = _vy;
   j["rapid"] = rapid;         // flag in order to tell if the movement is rapid or not
 
   _agent -> publish(j);
