@@ -365,7 +365,8 @@ void begin_rapid(T &data) {
   data.t_blk = 0.0;
   data.machine.listen_start();
   data.machine.setpoint(b.target());
-  data.machine.set_vel(b.feedrate() * b.target().delta(p).x() / b.target().delta(p).length(), b.feedrate() * b.target().delta(p).y() / b.target().delta(p).length());
+  data_t rapid_f = data.machine.fmax();
+  data.machine.set_vel(abs(rapid_f * b.target().delta(p).x() / b.target().delta(p).length()), abs(rapid_f * b.target().delta(p).y() / b.target().delta(p).length()));
   data.machine.sync(true);
 }
 
