@@ -305,7 +305,7 @@ state_t do_interp_motion(T &data) {
 
   // step 3 -> sync the machine
   data.machine.setpoint(tgt);
-  data.machine.set_vel(b.feedrate() * b.target().delta(p).x() / b.target().delta(p).length(), b.feedrate() * b.target().delta(p).y() / b.target().delta(p).length());
+  data.machine.set_vel(abs(b.feedrate() * b.target().delta(p).x() / b.target().delta(p).length()), abs(b.feedrate() * b.target().delta(p).y() / b.target().delta(p).length()));
   data.machine.sync(false);
 
   // step 4 -> check if it's done
