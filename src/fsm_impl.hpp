@@ -356,7 +356,7 @@ void begin_zero(T &data) {
   data.machine.listen_start();
   data.machine.setpoint(data.machine.zero());
   data_t rapid_f = data.machine.fmax();
-  data.machine.set_vel(rapid_f / 10.0, rapid_f / 10.0);
+  data.machine.set_vel(0.0, 0.0);//(rapid_f / 10.0, rapid_f / 10.0);
   data.machine.sync(true);
   cerr << "Going to zero at " << data.machine.zero().desc() << endl;
 }
@@ -373,7 +373,7 @@ void begin_rapid(T &data) {
   data.machine.listen_start();
   data.machine.setpoint(b.target());
   data_t rapid_f = data.machine.fmax();
-  data.machine.set_vel(rapid_f * b.target().delta(p).x() / b.target().delta(p).length(), rapid_f * b.target().delta(p).y() / b.target().delta(p).length());
+  data.machine.set_vel(0.0, 0.0); //rapid_f * b.target().delta(p).x() / b.target().delta(p).length(), rapid_f * b.target().delta(p).y() / b.target().delta(p).length());
   data.machine.sync(true);
 }
 
