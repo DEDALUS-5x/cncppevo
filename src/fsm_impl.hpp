@@ -311,7 +311,17 @@ state_t do_interp_motion(T &data) {
 
   // step 3 -> sync the machine
   data.machine.setpoint(tgt);
-  data.machine.set_vel(b.feedrate() * b.target().delta(p).x() / b.target().delta(p).length(), b.feedrate() * b.target().delta(p).y() / b.target().delta(p).length());
+  Point direction = b.target().delta(b.start_point());
+  data_t l = direction.length();
+  if (l > 0) {
+    data.machine.set_vel(
+        (speed / 60.0) * (direction.x() / l), 
+        (speed / 60.0) * (direction.y() / l)
+    );
+  } else {
+      data.machine.set_vel(0.0, 0.0);
+  }
+  
   data.machine.sync(false);
 
   // step 4 -> check if it's done
