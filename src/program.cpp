@@ -167,9 +167,16 @@ Program &Program::operator<<(string line){
   BlockTRC* current = back();
   back() -> BlockTRC::parse(_machine);
 
+  // rise error if A and C fields are present together with movement axes
   if(size() > 1){
 
     BlockTRC* prev = dynamic_cast<BlockTRC*>(current -> prev);
+
+    if(current -> type() != BlockTRC::BlockType::RAPID && (current -> target().a() != prev -> target().a() || current -> target().c() != prev -> target().c()) && (current -> target().x() != prev -> target().x() || current -> target().y() != prev -> target().y())){
+
+      throw CNCError("Invalid G-Code command: A and C are not movement axes, they must be sliced as positioning axes", this);
+    }
+
     data_t v_junction = compute_limit_v(prev, current);
 
     prev -> set_fe(v_junction);
